@@ -1,32 +1,23 @@
 from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel,HttpUrl, validator
-from typing import Optional
+from pydantic import BaseModel
 from app.pymysql.databaseConnection import get_db_connection
 
 router = APIRouter()
 
 
-class Platform(BaseModel):
+class Genre(BaseModel):
     name: str
-    logo_url: Optional[HttpUrl] = None
-
-    # custom validator to allow an empty string
-    @validator('logo_url', pre=True, always=True)
-    def empty_string_to_none(cls, v):
-        if v == "":
-            return None
-        return v
 
 
-# get all platforms
-@router.get("/platforms/")
-def get_platforms():
+# get all genres
+@router.get("/genres/")
+def get_genres():
     try:        
         # make a database connection
         connection = get_db_connection()
         # create a cursor object
         cursor = connection.cursor()
-        cursor.execute("SELECT * FROM platform")
+        cursor.execute("SELECT * FROM genre")
         rows = cursor.fetchall()
     except Exception as e:
         print(e)
@@ -43,61 +34,59 @@ def get_platforms():
         detail={ "success" : True, "rows": rows}
     )
 
-# add a new platform to the database
-@router.post("/platform/")
-def post_platform(platform_data: Platform):
+# add a new genre to the database
+@router.post("/genre/")
+def post_genre(genre_data: Genre):
     try:
         connection = get_db_connection()
         # gather values from the json object
-        name = platform_data.name
-        logo_url = platform_data.logo_url
+        name = genre_data.name
 
         # create a cursor object
         cursor = connection.cursor()
-        add_platform_query = "INSERT INTO platform (name, logo_url) VALUES (%s, %s)"
-        cursor.execute(add_platform_query, (name, logo_url))
+        add_genre_query = "INSERT INTO genre (name) VALUES (%s)"
+        cursor.execute(add_genre_query, (name))
         connection.commit()
     except Exception as e:
         print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={"success" : False, "message" : "Failed to add platform"}
+            detail={"success" : False, "message" : "Failed to add genre"}
         )
     finally:
         connection.close()
     # on successful operation, send status 200 and messages
     raise HTTPException(
         status_code=status.HTTP_200_OK,
-        detail={ "success" : True, "message": "Platform added successfully"}
+        detail={ "success" : True, "message": "Genre added successfully"}
     )
 
-# edit a video game platform
-@router.put("/platform/<platform_id>")
-def put_platform(platform_id: int, platform_data: Platform):
+# edit a video game genre
+@router.put("/genre/<genre_id>")
+def put_genre(genre_id: int, genre_data: Genre):
     try:
         connection = get_db_connection()
         # gather values from the json object
-        name = platform_data.name
-        logo_url = platform_data.logo_url
+        name = genre_data.name
 
         # create a cursor object
         cursor = connection.cursor()
         # check if the entry exists first
-        cursor.execute("SELECT * FROM platform WHERE platform_id = %s", platform_id)
-        platform = cursor.fetchone()
-        if not platform:
+        cursor.execute("SELECT * FROM genre WHERE genre_id = %s", genre_id)
+        genre = cursor.fetchone()
+        if not genre:
             raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Platform not found"
+            detail="Genre not found"
         )
-        update_platform_query = "UPDATE platform SET name = %s, logo_url = %s WHERE platform_id = %s"
-        cursor.execute(update_platform_query, (name, logo_url, platform_id))
+        update_genre_query = "UPDATE genre SET name = %s WHERE genre_id = %s"
+        cursor.execute(update_genre_query, (name, genre_id))
         connection.commit()
     except Exception as e:
         print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update platform"
+            detail="Failed to update genre"
         )
     finally:
         connection.close()
@@ -105,34 +94,34 @@ def put_platform(platform_id: int, platform_data: Platform):
     # on successful operation, send status 200 and messages
     raise HTTPException(
         status_code=status.HTTP_200_OK,
-        detail={ "success" : True, "message": "Platform updated successfully"}
+        detail={ "success" : True, "message": "Genre updated successfully"}
     )
 
 
-# delete a video game platform
-@router.delete("/platform/<platform_id>")
-def delete_platform(platform_id:int):
+# delete a video game genre
+@router.delete("/genre/<genre_id>")
+def delete_genre(genre_id:int):
     try:
         connection = get_db_connection()
         # create a cursor object
         cursor = connection.cursor()
 
         # check if the entry exists first
-        cursor.execute("SELECT * FROM platform WHERE platform_id = %s", platform_id)
-        platform = cursor.fetchone()
-        if not platform:
+        cursor.execute("SELECT * FROM genre WHERE genre_id = %s", genre_id)
+        genre = cursor.fetchone()
+        if not genre:
             raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Platform not found"
+            detail="Genre not found"
         )
-        delete_platform_query = "DELETE FROM platform WHERE platform_id = %s"
-        cursor.execute(delete_platform_query, (platform_id))
+        delete_genre_query = "DELETE FROM genre WHERE genre_id = %s"
+        cursor.execute(delete_genre_query, (genre_id))
         connection.commit()
     except Exception as e:
         print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to delete platform"
+            detail="Failed to delete genre"
         )
     finally:
         connection.close()
@@ -140,5 +129,5 @@ def delete_platform(platform_id:int):
     # on successful operation, send status 200 and messages
     raise HTTPException(
         status_code=status.HTTP_200_OK,
-        detail={ "success" : True, "message": "Platform successfully deleted"}
+        detail={ "success" : True, "message": "Genre successfully deleted"}
     )

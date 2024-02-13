@@ -1,32 +1,23 @@
 from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel,HttpUrl, validator
-from typing import Optional
+from pydantic import BaseModel
 from app.pymysql.databaseConnection import get_db_connection
 
 router = APIRouter()
 
 
-class Platform(BaseModel):
+class Developer(BaseModel):
     name: str
-    logo_url: Optional[HttpUrl] = None
-
-    # custom validator to allow an empty string
-    @validator('logo_url', pre=True, always=True)
-    def empty_string_to_none(cls, v):
-        if v == "":
-            return None
-        return v
 
 
-# get all platforms
-@router.get("/platforms/")
-def get_platforms():
+# get all developers
+@router.get("/developer/")
+def get_developers():
     try:        
         # make a database connection
         connection = get_db_connection()
         # create a cursor object
         cursor = connection.cursor()
-        cursor.execute("SELECT * FROM platform")
+        cursor.execute("SELECT * FROM developer")
         rows = cursor.fetchall()
     except Exception as e:
         print(e)
@@ -43,61 +34,59 @@ def get_platforms():
         detail={ "success" : True, "rows": rows}
     )
 
-# add a new platform to the database
-@router.post("/platform/")
-def post_platform(platform_data: Platform):
+# add a new developer to the database
+@router.post("/developer/")
+def post_developer(developer_data: Developer):
     try:
         connection = get_db_connection()
         # gather values from the json object
-        name = platform_data.name
-        logo_url = platform_data.logo_url
+        name = developer_data.name
 
         # create a cursor object
         cursor = connection.cursor()
-        add_platform_query = "INSERT INTO platform (name, logo_url) VALUES (%s, %s)"
-        cursor.execute(add_platform_query, (name, logo_url))
+        add_developer_query = "INSERT INTO developer (name) VALUES (%s)"
+        cursor.execute(add_developer_query, (name))
         connection.commit()
     except Exception as e:
         print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={"success" : False, "message" : "Failed to add platform"}
+            detail={"success" : False, "message" : "Failed to add developer"}
         )
     finally:
         connection.close()
     # on successful operation, send status 200 and messages
     raise HTTPException(
         status_code=status.HTTP_200_OK,
-        detail={ "success" : True, "message": "Platform added successfully"}
+        detail={ "success" : True, "message": "Developer added successfully"}
     )
 
-# edit a video game platform
-@router.put("/platform/<platform_id>")
-def put_platform(platform_id: int, platform_data: Platform):
+# edit a video game developer
+@router.put("/developer/<developer_id>")
+def put_developer(developer_id: int, developer_data: Developer):
     try:
         connection = get_db_connection()
         # gather values from the json object
-        name = platform_data.name
-        logo_url = platform_data.logo_url
+        name = developer_data.name
 
         # create a cursor object
         cursor = connection.cursor()
         # check if the entry exists first
-        cursor.execute("SELECT * FROM platform WHERE platform_id = %s", platform_id)
-        platform = cursor.fetchone()
-        if not platform:
+        cursor.execute("SELECT * FROM developer WHERE developer_id = %s", developer_id)
+        developer = cursor.fetchone()
+        if not developer:
             raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Platform not found"
+            detail="Developer not found"
         )
-        update_platform_query = "UPDATE platform SET name = %s, logo_url = %s WHERE platform_id = %s"
-        cursor.execute(update_platform_query, (name, logo_url, platform_id))
+        update_developer_query = "UPDATE developer SET name = %s WHERE developer_id = %s"
+        cursor.execute(update_developer_query, (name, developer_id))
         connection.commit()
     except Exception as e:
         print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update platform"
+            detail="Failed to update developer"
         )
     finally:
         connection.close()
@@ -105,34 +94,34 @@ def put_platform(platform_id: int, platform_data: Platform):
     # on successful operation, send status 200 and messages
     raise HTTPException(
         status_code=status.HTTP_200_OK,
-        detail={ "success" : True, "message": "Platform updated successfully"}
+        detail={ "success" : True, "message": "Developer updated successfully"}
     )
 
 
-# delete a video game platform
-@router.delete("/platform/<platform_id>")
-def delete_platform(platform_id:int):
+# delete a video game developer
+@router.delete("/developer/<developer_id>")
+def delete_developer(developer_id:int):
     try:
         connection = get_db_connection()
         # create a cursor object
         cursor = connection.cursor()
 
         # check if the entry exists first
-        cursor.execute("SELECT * FROM platform WHERE platform_id = %s", platform_id)
-        platform = cursor.fetchone()
-        if not platform:
+        cursor.execute("SELECT * FROM developer WHERE developer_id = %s", developer_id)
+        developer = cursor.fetchone()
+        if not developer:
             raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Platform not found"
+            detail="Developer not found"
         )
-        delete_platform_query = "DELETE FROM platform WHERE platform_id = %s"
-        cursor.execute(delete_platform_query, (platform_id))
+        delete_developer_query = "DELETE FROM developer WHERE developer_id = %s"
+        cursor.execute(delete_developer_query, (developer_id))
         connection.commit()
     except Exception as e:
         print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to delete platform"
+            detail="Failed to delete developer"
         )
     finally:
         connection.close()
@@ -140,5 +129,5 @@ def delete_platform(platform_id:int):
     # on successful operation, send status 200 and messages
     raise HTTPException(
         status_code=status.HTTP_200_OK,
-        detail={ "success" : True, "message": "Platform successfully deleted"}
+        detail={ "success" : True, "message": "Developer successfully deleted"}
     )
