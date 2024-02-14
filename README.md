@@ -29,6 +29,8 @@ MYSQL_HOST="(your MySQL hostname)"
 MYSQL_USER="(your MySQL username)"
 MYSQL_PASSWORD="(your MySQL password)"
 MYSQL_DATABASE="(the MySQL database that you want to use)"
+JWT_SECRET_KEY="(generate with command: openssl rand -hex 32)"
+JWT_REFRESH_SECRET_KEY="(generate with command: openssl rand -hex 32)"
 ```
 
 When everything has been done, we can start the server with:

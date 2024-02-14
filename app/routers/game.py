@@ -8,19 +8,25 @@ from app.models.User import User
 router = APIRouter()
 
 
-class Genre(BaseModel):
-    name: str
+class Game(BaseModel):
+    title: str
+    description: str
+    release_year: int
+    game_id: int
+    publisher_id: int
+    developer_id: int
+    image_url: str = None
 
 
-# get all genres
-@router.get("/genre/")
-def get_genres():
+# get publishers
+@router.get("/game/")
+def get_games():
     try:        
         # make a database connection
         connection = get_db_connection()
         # create a cursor object
         cursor = connection.cursor()
-        cursor.execute("SELECT * FROM genre")
+        cursor.execute("SELECT * FROM game")
         rows = cursor.fetchall()
     except Exception as e:
         print(e)
@@ -37,9 +43,10 @@ def get_genres():
         detail={ "success" : True, "rows": rows}
     )
 
-# add a new genre to the database
-@router.post("/genre/", response_model=User)
-async def post_genre(genre_data: Genre, current_user: Annotated[User, Depends(get_current_user)]):
+
+# add a new game to the database
+@router.post("/game/", response_model=User)
+async def post_game(game_data: Game, current_user: Annotated[User, Depends(get_current_user)]):
     if current_user["role"] != "admin":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -48,30 +55,40 @@ async def post_genre(genre_data: Genre, current_user: Annotated[User, Depends(ge
     try:
         connection = get_db_connection()
         # gather values from the json object
-        name = genre_data.name
+        title = game_data.title
+        description = game_data.description
+        release_year = game_data.release_year
+        game_id = game_data.game_id
+        publisher_id = game_data.publisher_id
+        developer_id = game_data.developer_id
+        image_url = game_data.image_url
+
+        values = (title, description, release_year, game_id, publisher_id, developer_id, image_url)
 
         # create a cursor object
         cursor = connection.cursor()
-        add_genre_query = "INSERT INTO genre (name) VALUES (%s)"
-        cursor.execute(add_genre_query, (name))
+        add_game_query = "INSERT INTO game (title, description, release_year, game_id, publisher_id, developer_id, image_url) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+        cursor.execute(add_game_query, values)
         connection.commit()
     except Exception as e:
         print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={"success" : False, "message" : "Failed to add genre"}
+            detail={"success" : False, "message" : "Failed to add game"}
         )
     finally:
         connection.close()
     # on successful operation, send status 200 and messages
     raise HTTPException(
         status_code=status.HTTP_200_OK,
-        detail={ "success" : True, "message": "Genre added successfully"}
+        detail={ "success" : True, "message": "Game added successfully"}
     )
 
-# edit a video game genre
-@router.put("/genre/{genre_id}", response_model=User)
-async def put_genre(genre_id: int, genre_data: Genre, current_user: Annotated[User, Depends(get_current_user)]):
+
+# edit a video game game
+@router.put("/game/{game_id}", response_model=User)
+async def put_game(game_id: int, game_data: Game, current_user: Annotated[User, Depends(get_current_user)]):
+    print(current_user)
     if current_user["role"] == "user":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -80,26 +97,34 @@ async def put_genre(genre_id: int, genre_data: Genre, current_user: Annotated[Us
     try:
         connection = get_db_connection()
         # gather values from the json object
-        name = genre_data.name
+        title = game_data.title
+        description = game_data.description
+        release_year = game_data.release_year
+        game_id = game_data.game_id
+        publisher_id = game_data.publisher_id
+        developer_id = game_data.developer_id
+        image_url = game_data.image_url
+
+        values = (title, description, release_year, game_id, publisher_id, developer_id, image_url, game_id)
 
         # create a cursor object
         cursor = connection.cursor()
         # check if the entry exists first
-        cursor.execute("SELECT * FROM genre WHERE genre_id = %s", genre_id)
-        genre = cursor.fetchone()
-        if not genre:
+        cursor.execute("SELECT * FROM game WHERE game_id = %s", game_id)
+        game = cursor.fetchone()
+        if not game:
             raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Genre not found"
+            detail="Game not found"
         )
-        update_genre_query = "UPDATE genre SET name = %s WHERE genre_id = %s"
-        cursor.execute(update_genre_query, (name, genre_id))
+        update_game_query = "UPDATE game SET title = %s, description = %s, release_year = %s, game_id = %s, publisher_id = %s, developer_id = %s, image_url = %s, WHERE game_id = %s"
+        cursor.execute(update_game_query, values)
         connection.commit()
     except Exception as e:
         print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update genre"
+            detail="Failed to update game"
         )
     finally:
         connection.close()
@@ -107,13 +132,13 @@ async def put_genre(genre_id: int, genre_data: Genre, current_user: Annotated[Us
     # on successful operation, send status 200 and messages
     raise HTTPException(
         status_code=status.HTTP_200_OK,
-        detail={ "success" : True, "message": "Genre updated successfully"}
+        detail={ "success" : True, "message": "Game updated successfully"}
     )
 
 
-# delete a video game genre
-@router.delete("/genre/{genre_id}", response_model=User)
-async def delete_genre(genre_id:int, current_user: Annotated[User, Depends(get_current_user)]):
+# delete a video game game
+@router.delete("/game/{game_id}", response_model=User)
+async def delete_game(game_id:int, current_user: Annotated[User, Depends(get_current_user)]):
     if current_user["role"] != "admin":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -125,21 +150,21 @@ async def delete_genre(genre_id:int, current_user: Annotated[User, Depends(get_c
         cursor = connection.cursor()
 
         # check if the entry exists first
-        cursor.execute("SELECT * FROM genre WHERE genre_id = %s", genre_id)
-        genre = cursor.fetchone()
-        if not genre:
+        cursor.execute("SELECT * FROM game WHERE game_id = %s", game_id)
+        game = cursor.fetchone()
+        if not game:
             raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Genre not found"
+            detail="game not found"
         )
-        delete_genre_query = "DELETE FROM genre WHERE genre_id = %s"
-        cursor.execute(delete_genre_query, (genre_id))
+        delete_game_query = "DELETE FROM game WHERE game_id = %s"
+        cursor.execute(delete_game_query, game_id)
         connection.commit()
     except Exception as e:
         print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to delete genre"
+            detail="Failed to delete game"
         )
     finally:
         connection.close()
@@ -147,5 +172,5 @@ async def delete_genre(genre_id:int, current_user: Annotated[User, Depends(get_c
     # on successful operation, send status 200 and messages
     raise HTTPException(
         status_code=status.HTTP_200_OK,
-        detail={ "success" : True, "message": "Genre successfully deleted"}
+        detail={ "success" : True, "message": "Game successfully deleted"}
     )

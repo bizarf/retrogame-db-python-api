@@ -1,7 +1,9 @@
-from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel,HttpUrl, validator
-from typing import Optional
+from fastapi import APIRouter, HTTPException, status, Depends
+from pydantic import BaseModel, HttpUrl, validator
+from typing import Optional, Annotated
 from app.pymysql.databaseConnection import get_db_connection
+from app.dependencies import get_current_user
+from app.models.User import User
 
 router = APIRouter()
 
@@ -19,7 +21,7 @@ class Platform(BaseModel):
 
 
 # get all platforms
-@router.get("/platforms/")
+@router.get("/platform/")
 def get_platforms():
     try:        
         # make a database connection
@@ -44,8 +46,13 @@ def get_platforms():
     )
 
 # add a new platform to the database
-@router.post("/platform/")
-def post_platform(platform_data: Platform):
+@router.post("/platform/", response_model=User)
+async def post_platform(platform_data: Platform, current_user: Annotated[User, Depends(get_current_user)]):
+    if current_user["role"] != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={"success": False, "message": "You are unauthorized"}
+        )
     try:
         connection = get_db_connection()
         # gather values from the json object
@@ -72,13 +79,21 @@ def post_platform(platform_data: Platform):
     )
 
 # edit a video game platform
-@router.put("/platform/{platform_id}")
-def put_platform(platform_id: int, platform_data: Platform):
+@router.put("/platform/{platform_id}", response_model=User)
+async def put_platform(platform_id: int, platform_data: Platform, current_user: Annotated[User, Depends(get_current_user)]):
+    print(current_user)
+    if current_user["role"] == "user":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={"success": False, "message": "You are unauthorized"}
+        )
     try:
         connection = get_db_connection()
-        # gather values from the json object
+        # gather values from the json object and make a tuple for the sql query
         name = platform_data.name
         logo_url = platform_data.logo_url
+
+        values = (name, logo_url, platform_id)
 
         # create a cursor object
         cursor = connection.cursor()
@@ -91,7 +106,7 @@ def put_platform(platform_id: int, platform_data: Platform):
             detail="Platform not found"
         )
         update_platform_query = "UPDATE platform SET name = %s, logo_url = %s WHERE platform_id = %s"
-        cursor.execute(update_platform_query, (name, logo_url, platform_id))
+        cursor.execute(update_platform_query, values)
         connection.commit()
     except Exception as e:
         print(e)
@@ -110,8 +125,13 @@ def put_platform(platform_id: int, platform_data: Platform):
 
 
 # delete a video game platform
-@router.delete("/platform/{platform_id}")
-def delete_platform(platform_id:int):
+@router.delete("/platform/{platform_id}", response_model=User)
+async def delete_platform(platform_id:int, current_user: Annotated[User, Depends(get_current_user)]):
+    if current_user["role"] != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={"success": False, "message": "You are unauthorized"}
+        )
     try:
         connection = get_db_connection()
         # create a cursor object

@@ -1,25 +1,30 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
+from pydantic import BaseModel
+from typing import Annotated
 from app.pymysql.databaseConnection import get_db_connection
+from app.dependencies import get_current_user
+from app.models.User import User
+
 
 router = APIRouter()
 
 
-# get publishers
-@router.get("/gamegenre/{game_id}/")
-def get_gameGenre(game_id: int):
+class Favourites(BaseModel):
+    user_id: int
+    game_id: int
+
+
+# get all of the user's favourites
+@router.get("/favourites/", response_model=User)
+def get_games(current_user: Annotated[User, Depends(get_current_user)]):
     try:        
         # make a database connection
         connection = get_db_connection()
         # create a cursor object
         cursor = connection.cursor()
-        get_gameGenre_query = """
-            SELECT g.name AS genre_name
-            FROM GENRE g
-            JOIN GAMEGENRE gg ON g.genre_id = gg.genre_id
-            WHERE gg.game_id = %s;
-            """
-        cursor.execute(get_gameGenre_query, game_id)
-        rows = cursor.fetchall()
+        get_faves_query = "SELECT "
+        cursor.execute(get_faves_query)
+        rows = cursor.fetchone()
     except Exception as e:
         print(e)
         raise HTTPException(

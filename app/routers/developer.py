@@ -1,6 +1,9 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel
 from app.pymysql.databaseConnection import get_db_connection
+from typing import Annotated
+from app.dependencies import get_current_user
+from app.models.User import User
 
 router = APIRouter()
 
@@ -35,8 +38,13 @@ def get_developers():
     )
 
 # add a new developer to the database
-@router.post("/developer/")
-def post_developer(developer_data: Developer):
+@router.post("/developer/", response_model=User)
+def post_developer(developer_data: Developer, current_user: Annotated[User, Depends(get_current_user)]):
+    if current_user["role"] != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={"success": False, "message": "You are unauthorized"}
+        )
     try:
         connection = get_db_connection()
         # gather values from the json object
@@ -62,8 +70,13 @@ def post_developer(developer_data: Developer):
     )
 
 # edit a video game developer
-@router.put("/developer/{developer_id}")
-def put_developer(developer_id: int, developer_data: Developer):
+@router.put("/developer/{developer_id}", response_model=User)
+def put_developer(developer_id: int, developer_data: Developer, current_user: Annotated[User, Depends(get_current_user)]):
+    if current_user["role"] == "user":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={"success": False, "message": "You are unauthorized"}
+        )
     try:
         connection = get_db_connection()
         # gather values from the json object
@@ -99,8 +112,13 @@ def put_developer(developer_id: int, developer_data: Developer):
 
 
 # delete a video game developer
-@router.delete("/developer/{developer_id}")
-def delete_developer(developer_id:int):
+@router.delete("/developer/{developer_id}", response_model=User)
+def delete_developer(developer_id:int, current_user: Annotated[User, Depends(get_current_user)]):
+    if current_user["role"] != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={"success": False, "message": "You are unauthorized"}
+        )
     try:
         connection = get_db_connection()
         # create a cursor object

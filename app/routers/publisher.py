@@ -1,6 +1,9 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel
+from typing import Annotated
 from app.pymysql.databaseConnection import get_db_connection
+from app.dependencies import get_current_user
+from app.models.User import User
 
 router = APIRouter()
 
@@ -35,8 +38,13 @@ def get_publishers():
     )
 
 # add a new publisher to the database
-@router.post("/publisher/")
-def post_publisher(publisher_data: Publisher):
+@router.post("/publisher/", response_model=User)
+async def post_publisher(publisher_data: Publisher, current_user: Annotated[User, Depends(get_current_user)]):
+    if current_user["role"] != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={"success": False, "message": "You are unauthorized"}
+        )
     try:
         connection = get_db_connection()
         # gather values from the json object
@@ -62,8 +70,13 @@ def post_publisher(publisher_data: Publisher):
     )
 
 # edit a video game publisher
-@router.put("/publisher/{publisher_id}")
-def put_publisher(publisher_id: int, publisher_data: Publisher):
+@router.put("/publisher/{publisher_id}", response_model=User)
+async def put_publisher(publisher_id: int, publisher_data: Publisher, current_user: Annotated[User, Depends(get_current_user)]):
+    if current_user["role"] == "user":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={"success": False, "message": "You are unauthorized"}
+        )
     try:
         connection = get_db_connection()
         # gather values from the json object
@@ -99,8 +112,13 @@ def put_publisher(publisher_id: int, publisher_data: Publisher):
 
 
 # delete a video game publisher
-@router.delete("/publisher/{publisher_id}")
-def delete_publisher(publisher_id:int):
+@router.delete("/publisher/{publisher_id}", response_model=User)
+async def delete_publisher(publisher_id:int, current_user: Annotated[User, Depends(get_current_user)]):
+    if current_user["role"] != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={"success": False, "message": "You are unauthorized"}
+        )
     try:
         connection = get_db_connection()
         # create a cursor object

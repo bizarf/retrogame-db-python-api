@@ -10,6 +10,7 @@ from app.utils import (
     create_access_token, 
     create_refresh_token)
 from app.dependencies import get_current_user
+from app.models.User import User
 
 
 router = APIRouter()
@@ -26,14 +27,6 @@ class UserRegistration(BaseModel):
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
-
-
-# modal for data returned from me route
-class User(BaseModel):
-    username: str
-    email: EmailStr
-    role: str
-    join_date: datetime
 
 
 # user registration
