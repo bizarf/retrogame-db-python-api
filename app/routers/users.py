@@ -133,9 +133,9 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 
 
 # user update
-@router.put("/user/{user_id}")
-def put_user_update():
-    return {"hello":"hello"}
+# @router.put("/user/{user_id}")
+# def put_user_update():
+#     return {"hello":"hello"}
 
 
 # returns the current user

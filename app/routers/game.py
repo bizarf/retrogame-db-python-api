@@ -12,14 +12,15 @@ class Game(BaseModel):
     title: str
     description: str
     release_year: int
-    game_id: int
+    genre_id: int
+    platform_id: int
     publisher_id: int
     developer_id: int
     image_url: str = None
 
 
-# get publishers
-@router.get("/game/")
+# get games
+@router.get("/games/")
 def get_games():
     try:        
         # make a database connection
@@ -44,6 +45,33 @@ def get_games():
     )
 
 
+# fetch details about a single game
+@router.get("/game/{game_id}")
+def get_game(game_id):
+    try:        
+        # make a database connection
+        connection = get_db_connection()
+        # create a cursor object
+        cursor = connection.cursor()
+        select_single_game_query = "SELECT * FROM game WHERE game_id = %s"
+        cursor.execute(select_single_game_query, game_id)
+        game = cursor.fetchone()
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"success" : False, "message" : "An error occurred"}
+        )
+    finally:
+        connection.close()
+
+    # on successful operation, send status 200 and messages
+    raise HTTPException(
+        status_code=status.HTTP_200_OK,
+        detail={ "success" : True, "game": game}
+    )
+
+
 # add a new game to the database
 @router.post("/game/", response_model=User)
 async def post_game(game_data: Game, current_user: Annotated[User, Depends(get_current_user)]):
@@ -58,16 +86,18 @@ async def post_game(game_data: Game, current_user: Annotated[User, Depends(get_c
         title = game_data.title
         description = game_data.description
         release_year = game_data.release_year
-        game_id = game_data.game_id
+        genre_id = game_data.genre_id
+        platform_id = game_data.platform_id
         publisher_id = game_data.publisher_id
         developer_id = game_data.developer_id
         image_url = game_data.image_url
 
-        values = (title, description, release_year, game_id, publisher_id, developer_id, image_url)
+        values = (title, description, release_year, genre_id, platform_id, publisher_id, developer_id, image_url)
+        print(platform_id)
 
         # create a cursor object
         cursor = connection.cursor()
-        add_game_query = "INSERT INTO game (title, description, release_year, game_id, publisher_id, developer_id, image_url) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+        add_game_query = "INSERT INTO game (title, description, release_year, platform_id, publisher_id, developer_id, image_url) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
         cursor.execute(add_game_query, values)
         connection.commit()
     except Exception as e:
@@ -100,12 +130,13 @@ async def put_game(game_id: int, game_data: Game, current_user: Annotated[User, 
         title = game_data.title
         description = game_data.description
         release_year = game_data.release_year
-        game_id = game_data.game_id
+        genre_id = game_data.genre_id
+        platform_id = game_data.platform_id
         publisher_id = game_data.publisher_id
         developer_id = game_data.developer_id
         image_url = game_data.image_url
 
-        values = (title, description, release_year, game_id, publisher_id, developer_id, image_url, game_id)
+        values = (title, description, release_year, genre_id, platform_id, publisher_id, developer_id, image_url, game_id)
 
         # create a cursor object
         cursor = connection.cursor()
@@ -117,7 +148,7 @@ async def put_game(game_id: int, game_data: Game, current_user: Annotated[User, 
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Game not found"
         )
-        update_game_query = "UPDATE game SET title = %s, description = %s, release_year = %s, game_id = %s, publisher_id = %s, developer_id = %s, image_url = %s, WHERE game_id = %s"
+        update_game_query = "UPDATE game SET title = %s, description = %s, release_year = %s, genre_id = %s, platform_id = %s, publisher_id = %s, developer_id = %s, image_url = %s, WHERE game_id = %s"
         cursor.execute(update_game_query, values)
         connection.commit()
     except Exception as e:

@@ -33,6 +33,7 @@ try:
             title VARCHAR(255) NOT NULL,
             description TEXT NOT NULL,
             release_year INT NOT NULL,
+            genre_id INT NOT NULL,
             platform_id INT NOT NULL,
             publisher_id INT NOT NULL,
             developer_id INT NOT NULL,
@@ -46,14 +47,6 @@ try:
         CREATE TABLE IF NOT EXISTS genre(
             genre_id INT AUTO_INCREMENT PRIMARY KEY,
             name VARCHAR(100) NOT NULL UNIQUE
-        );"""
-    
-    create_gamegenre_tbl = """
-        CREATE TABLE IF NOT EXISTS gamegenre(
-            game_id INT NOT NULL,
-            genre_id INT NOT NULL,
-            FOREIGN KEY (game_id) REFERENCES game(game_id),
-            FOREIGN KEY (genre_id) REFERENCES genre(genre_id)
         );"""
     
     create_users_tbl = """
@@ -92,7 +85,6 @@ try:
     cursor.execute(create_developer_tbl)
     cursor.execute(create_game_tbl)
     cursor.execute(create_genre_tbl)
-    cursor.execute(create_gamegenre_tbl)
     cursor.execute(create_users_tbl)
     cursor.execute(create_ratings_tbl)
     cursor.execute(create_favourites_tbl)

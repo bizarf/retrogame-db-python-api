@@ -37,6 +37,39 @@ def get_publishers():
         detail={ "success" : True, "rows": rows}
     )
 
+
+# get all games released by the publisher
+@router.get("/publisher/{publisher_id}")
+def get_publisher_games(publisher_id):
+    try:        
+        # make a database connection
+        connection = get_db_connection()
+        # create a cursor object
+        cursor = connection.cursor()
+        fetch_games_by_publisher = """
+            SELECT g.game_id, g.title AS game_title, g.image_url, p.name AS publisher_name
+            FROM GAME g
+            JOIN publisher p ON g.publisher_id = p.publisher_id
+            WHERE g.developer_id = %s;
+            """
+        cursor.execute(fetch_games_by_publisher, publisher_id)
+        games = cursor.fetchall()
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"success" : False, "message" : "An error occurred"}
+        )
+    finally:
+        connection.close()
+
+    # on successful operation, send status 200 and messages
+    raise HTTPException(
+        status_code=status.HTTP_200_OK,
+        detail={ "success" : True, "games": games}
+    )
+
+
 # add a new publisher to the database
 @router.post("/publisher/", response_model=User)
 async def post_publisher(publisher_data: Publisher, current_user: Annotated[User, Depends(get_current_user)]):

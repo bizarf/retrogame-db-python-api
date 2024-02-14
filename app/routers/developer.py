@@ -13,7 +13,7 @@ class Developer(BaseModel):
 
 
 # get all developers
-@router.get("/developer/")
+@router.get("/developers/")
 def get_developers():
     try:        
         # make a database connection
@@ -37,6 +37,39 @@ def get_developers():
         detail={ "success" : True, "rows": rows}
     )
 
+
+# get all games developed by the developer
+@router.get("/developer/{developer_id}")
+def get_developer_games(developer_id):
+    try:        
+        # make a database connection
+        connection = get_db_connection()
+        # create a cursor object
+        cursor = connection.cursor()
+        fetch_games_by_developer = """
+            SELECT g.game_id, g.title AS game_title, g.image_url, d.name AS developer_name
+            FROM GAME g
+            JOIN DEVELOPER d ON g.developer_id = d.developer_id
+            WHERE g.developer_id = %s;
+            """
+        cursor.execute(fetch_games_by_developer, developer_id)
+        games = cursor.fetchall()
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"success" : False, "message" : "An error occurred"}
+        )
+    finally:
+        connection.close()
+
+    # on successful operation, send status 200 and messages
+    raise HTTPException(
+        status_code=status.HTTP_200_OK,
+        detail={ "success" : True, "games": games}
+    )
+
+
 # add a new developer to the database
 @router.post("/developer/", response_model=User)
 def post_developer(developer_data: Developer, current_user: Annotated[User, Depends(get_current_user)]):
@@ -53,7 +86,7 @@ def post_developer(developer_data: Developer, current_user: Annotated[User, Depe
         # create a cursor object
         cursor = connection.cursor()
         add_developer_query = "INSERT INTO developer (name) VALUES (%s)"
-        cursor.execute(add_developer_query, (name))
+        cursor.execute(add_developer_query, name)
         connection.commit()
     except Exception as e:
         print(e)
@@ -133,7 +166,7 @@ def delete_developer(developer_id:int, current_user: Annotated[User, Depends(get
             detail="Developer not found"
         )
         delete_developer_query = "DELETE FROM developer WHERE developer_id = %s"
-        cursor.execute(delete_developer_query, (developer_id))
+        cursor.execute(delete_developer_query, developer_id)
         connection.commit()
     except Exception as e:
         print(e)

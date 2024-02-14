@@ -15,4 +15,18 @@ def get_db_connection():
         database=os.getenv("MYSQL_DATABASE"),
         cursorclass=pymysql.cursors.DictCursor
         )
+    # timeout = 10
+
+    # connection = pymysql.connect(
+    #     host=os.getenv("MYSQL_HOST"),
+    #     user=os.getenv("MYSQL_USER"),
+    #     password=os.getenv("MYSQL_PASSWORD"),
+    #     database=os.getenv("MYSQL_DATABASE"),
+    #     cursorclass=pymysql.cursors.DictCursor,
+    #     charset="utf8mb4",
+    #     connect_timeout=timeout,
+    #     read_timeout=timeout,
+    #     port=27369,
+    #     write_timeout=timeout,
+    #     )
     return connection

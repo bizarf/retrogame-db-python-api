@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS game(
     title VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
     release_year INT NOT NULL,
+    genre_id INT NOT NULL Foreign Key
     platform_id INT NOT NULL,
     publisher_id INT NOT NULL,
     developer_id INT NOT NULL,

@@ -37,6 +37,39 @@ def get_genres():
         detail={ "success" : True, "rows": rows}
     )
 
+
+# get all games under that genre
+@router.get("/genre/{genre_id}")
+def get_genre_games(genre_id):
+    try:        
+        # make a database connection
+        connection = get_db_connection()
+        # create a cursor object
+        cursor = connection.cursor()
+        fetch_games_by_genre = """
+            SELECT g.game_id, g.title AS game_title, g.image_url, gen.name AS genre_name
+            FROM GAME g
+            JOIN GENRE gen ON g.genre_id = gen.genre_id
+            WHERE g.genre_id = %s;
+            """
+        cursor.execute(fetch_games_by_genre, genre_id)
+        games = cursor.fetchall()
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"success" : False, "message" : "An error occurred"}
+        )
+    finally:
+        connection.close()
+
+    # on successful operation, send status 200 and messages
+    raise HTTPException(
+        status_code=status.HTTP_200_OK,
+        detail={ "success" : True, "games": games}
+    )
+
+
 # add a new genre to the database
 @router.post("/genre/", response_model=User)
 async def post_genre(genre_data: Genre, current_user: Annotated[User, Depends(get_current_user)]):

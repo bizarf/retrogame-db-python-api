@@ -21,7 +21,7 @@ class Platform(BaseModel):
 
 
 # get all platforms
-@router.get("/platform/")
+@router.get("/platforms/")
 def get_platforms():
     try:        
         # make a database connection
@@ -44,6 +44,39 @@ def get_platforms():
         status_code=status.HTTP_200_OK,
         detail={ "success" : True, "rows": rows}
     )
+
+
+# get all games for a platform
+@router.get("/platform/{platform_id}")
+def get_platform_games(platform_id: int):
+    try:        
+        # make a database connection
+        connection = get_db_connection()
+        # create a cursor object
+        cursor = connection.cursor()
+        fetch_games_for_platform_query = """
+            SELECT g.game_id, g.title AS game_title, g.image_url, p.name AS platform_name
+            FROM GAME g
+            JOIN PLATFORM p ON g.platform_id = p.platform_id
+            WHERE g.platform_id = %s;
+            """
+        cursor.execute(fetch_games_for_platform_query, platform_id)
+        games = cursor.fetchall()
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"success" : False, "message" : "An error occurred"}
+        )
+    finally:
+        connection.close()
+
+    # on successful operation, send status 200 and messages
+    raise HTTPException(
+        status_code=status.HTTP_200_OK,
+        detail={ "success" : True, "games": games}
+    )
+
 
 # add a new platform to the database
 @router.post("/platform/", response_model=User)
