@@ -1,34 +1,18 @@
 from fastapi import APIRouter, HTTPException, status, Depends
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr
 from typing import Annotated
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 from app.pymysql.databaseConnection import get_db_connection
-from passlib.context import CryptContext
-from jose import JWTError, jwt
-from dotenv import load_dotenv
-import os
+from app.utils import (
+    verify_password, 
+    get_password_hash, 
+    create_access_token, 
+    create_refresh_token)
+from app.dependencies import get_current_user
 
-load_dotenv()
+
 router = APIRouter()
-
-# setup cryptcontent to use bcrypt. this will hash and salt the passwords
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/login")
-
-
-# jwt stuff. secret generated with:
-# openssl rand -hex 32
-JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
-JWT_REFRESH_SECRET_KEY = os.getenv("JWT_REFRESH_SECRET_KEY")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
-REFRESH_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7
-
-
-class TokenData(BaseModel):
-    email: str | None = None
 
 
 # i only need the username, email, and password for registering users. role can be set via mysql. date is automatically generated
@@ -50,72 +34,6 @@ class User(BaseModel):
     email: EmailStr
     role: str
     join_date: datetime
-
-
-# verify the user inputted password to a hashed password
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
-
-
-# hash and salt a password
-def get_password_hash(password):
-    return pwd_context.hash(password)
-
-
-# check if the user exists in the database
-def get_user(email:str):
-    connection = get_db_connection()
-    cursor = connection.cursor()
-    cursor.execute("SELECT * FROM users WHERE email = %s", email)
-    user = cursor.fetchone()
-    cursor.close()
-    connection.close()
-    return user
-
-
-# create the access token
-def create_access_token(data:dict, expires_delta: timedelta | None = None):
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
-    else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, JWT_SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
-
-
-# create the refresh token
-def create_refresh_token(data:dict, expires_delta: timedelta | None = None):
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
-    else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, JWT_REFRESH_SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
-
-
-# dependency to protect routes
-async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
-        email: str = payload.get("sub")
-        if email is None:
-            raise credentials_exception
-        token_data = TokenData(email=email)
-    except JWTError:
-        raise credentials_exception
-    user = get_user(email=token_data.email)
-    if user is None:
-        raise credentials_exception
-    return user
 
 
 # user registration

@@ -1,43 +1,34 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordBearer
+from typing import Annotated
 from jose import JWTError, jwt
-from dotenv import load_dotenv
-import os
+from pydantic import BaseModel
+from app.utils import get_user, JWT_SECRET_KEY, ALGORITHM
 
-load_dotenv()
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/login")
 
-# jwt stuff. secret generated with:
-# openssl rand -hex 32
-SECRET_KEY = os.getenv("JWT_SECRETKEY")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-async def verify_token(token: str = Depends(oauth2_scheme)):
+class TokenData(BaseModel):
+    email: str | None = None
+
+
+# dependency to protect routes
+async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid credentials",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+        token_data = TokenData(email=email)
     except JWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    connection = get_db_connection()
-    cursor = connection.cursor()
-    cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
-    user = cursor.fetchone()
-    connection.close()
-
+        raise credentials_exception
+    user = get_user(email=token_data.email)
     if user is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
-
-    return User(**user)
+        raise credentials_exception
+    return user
