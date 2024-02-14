@@ -62,7 +62,7 @@ def post_developer(developer_data: Developer):
     )
 
 # edit a video game developer
-@router.put("/developer/<developer_id>")
+@router.put("/developer/{developer_id}")
 def put_developer(developer_id: int, developer_data: Developer):
     try:
         connection = get_db_connection()
@@ -99,7 +99,7 @@ def put_developer(developer_id: int, developer_data: Developer):
 
 
 # delete a video game developer
-@router.delete("/developer/<developer_id>")
+@router.delete("/developer/{developer_id}")
 def delete_developer(developer_id:int):
     try:
         connection = get_db_connection()

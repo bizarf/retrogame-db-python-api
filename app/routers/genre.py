@@ -62,7 +62,7 @@ def post_genre(genre_data: Genre):
     )
 
 # edit a video game genre
-@router.put("/genre/<genre_id>")
+@router.put("/genre/{genre_id}")
 def put_genre(genre_id: int, genre_data: Genre):
     try:
         connection = get_db_connection()
@@ -99,7 +99,7 @@ def put_genre(genre_id: int, genre_data: Genre):
 
 
 # delete a video game genre
-@router.delete("/genre/<genre_id>")
+@router.delete("/genre/{genre_id}")
 def delete_genre(genre_id:int):
     try:
         connection = get_db_connection()

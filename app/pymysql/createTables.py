@@ -62,7 +62,7 @@ try:
             username VARCHAR(50) NOT NULL UNIQUE,
             email VARCHAR(100) NOT NULL UNIQUE,
             password VARCHAR(255) NOT NULL,
-            role TEXT CHECK (role IN ('admin', 'editor', 'user')) NOT NULL,
+            role VARCHAR(6) CHECK (role IN ('admin', 'editor', 'user')) NOT NULL DEFAULT 'user',
             join_date DATETIME NOT NULL
         );"""
     

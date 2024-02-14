@@ -62,7 +62,7 @@ def post_publisher(publisher_data: Publisher):
     )
 
 # edit a video game publisher
-@router.put("/publisher/<publisher_id>")
+@router.put("/publisher/{publisher_id}")
 def put_publisher(publisher_id: int, publisher_data: Publisher):
     try:
         connection = get_db_connection()
@@ -99,7 +99,7 @@ def put_publisher(publisher_id: int, publisher_data: Publisher):
 
 
 # delete a video game publisher
-@router.delete("/publisher/<publisher_id>")
+@router.delete("/publisher/{publisher_id}")
 def delete_publisher(publisher_id:int):
     try:
         connection = get_db_connection()

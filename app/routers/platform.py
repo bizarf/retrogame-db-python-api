@@ -72,7 +72,7 @@ def post_platform(platform_data: Platform):
     )
 
 # edit a video game platform
-@router.put("/platform/<platform_id>")
+@router.put("/platform/{platform_id}")
 def put_platform(platform_id: int, platform_data: Platform):
     try:
         connection = get_db_connection()
@@ -110,7 +110,7 @@ def put_platform(platform_id: int, platform_data: Platform):
 
 
 # delete a video game platform
-@router.delete("/platform/<platform_id>")
+@router.delete("/platform/{platform_id}")
 def delete_platform(platform_id:int):
     try:
         connection = get_db_connection()
