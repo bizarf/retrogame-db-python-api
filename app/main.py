@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.routers import (
     users, 
     platform,
@@ -10,6 +11,14 @@ from app.routers import (
     )
 
 app = FastAPI()
+# cors stuff. must change allow_origin to github later
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["*"],
+    )
 
 
 @app.get("/")
