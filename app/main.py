@@ -7,14 +7,15 @@ from app.routers import (
     developer,
     publisher,
     game,
-    favourites
+    favourites,
+    token
     )
 
 app = FastAPI()
 # cors stuff. must change allow_origin to github later
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["http://localhost:5173"],    
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
@@ -33,3 +34,4 @@ app.include_router(developer.router)
 app.include_router(publisher.router)
 app.include_router(game.router)
 app.include_router(favourites.router)
+app.include_router(token.router)
