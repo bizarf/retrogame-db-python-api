@@ -80,6 +80,12 @@ def get_platform_games(platform_id: int):
         connection = get_db_connection()
         # create a cursor object
         cursor = connection.cursor()
+        fetch_platform_info_query = """
+            SELECT name FROM PLATFORM WHERE platform_id = %s;
+            """
+        cursor.execute(fetch_platform_info_query, (platform_id,))
+        platform_name = cursor.fetchone()["name"]
+
         fetch_games_for_platform_query = """
             SELECT g.game_id, g.title AS game_title, g.image_url, p.name AS platform_name
             FROM GAME g
@@ -100,7 +106,7 @@ def get_platform_games(platform_id: int):
     # on successful operation, send status 200 and messages
     raise HTTPException(
         status_code=status.HTTP_200_OK,
-        detail={ "success" : True, "games": games}
+        detail={ "success" : True, "games": games, "platform_name": platform_name}
     )
 
 
