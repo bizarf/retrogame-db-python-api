@@ -70,6 +70,20 @@ def create_refresh_token(data:dict, expires_delta: timedelta | None = None):
     return encoded_jwt
 
 
+def update_refresh_token(refresh_token:str):
+    try:
+        payload = jwt.decode(refresh_token, JWT_REFRESH_SECRET_KEY, algorithms=["HS256"])
+
+        if datetime.utcnow() < datetime.utcfromtimestamp(payload['exp']):
+            to_encode = payload
+            encoded_jwt = jwt.encode(to_encode, JWT_REFRESH_SECRET_KEY, algorithm=ALGORITHM)
+            return encoded_jwt
+    except JWTError as e:
+        # Handle JWT errors
+        print(f"JWT Error: {e}")
+        return None
+
+
 def verify_refresh_token(refresh_token: str):
     try:
         # Verify the token's signature

@@ -46,6 +46,32 @@ def get_platforms():
     )
 
 
+@router.get("/platform-data/{platform_id}")
+def get_platform_data(platform_id):
+    try:        
+        # make a database connection
+        connection = get_db_connection()
+        # create a cursor object
+        cursor = connection.cursor()
+        fetch_platform_data = "SELECT * FROM platform WHERE platform_id = %s"
+        cursor.execute(fetch_platform_data, platform_id)
+        platform = cursor.fetchone()
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"success" : False, "message" : "An error occurred"}
+        )
+    finally:
+        connection.close()
+
+    # on successful operation, send status 200 and messages
+    raise HTTPException(
+        status_code=status.HTTP_200_OK,
+        detail={ "success" : True, "platform": platform}
+    )
+
+
 # get all games for a platform
 @router.get("/platform/{platform_id}")
 def get_platform_games(platform_id: int):
@@ -95,7 +121,7 @@ async def post_platform(platform_data: Platform, current_user: Annotated[User, D
         # create a cursor object
         cursor = connection.cursor()
         add_platform_query = "INSERT INTO platform (name, logo_url) VALUES (%s, %s)"
-        cursor.execute(add_platform_query, (name, logo_url))
+        cursor.execute(add_platform_query, (name, logo_url,))
         connection.commit()
     except Exception as e:
         print(e)
