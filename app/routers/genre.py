@@ -38,6 +38,32 @@ def get_genres():
     )
 
 
+@router.get("/genre-data/{genre_id}")
+def get_platform_data(platform_id):
+    try:        
+        # make a database connection
+        connection = get_db_connection()
+        # create a cursor object
+        cursor = connection.cursor()
+        fetch_platform_data = "SELECT * FROM platform WHERE platform_id = %s"
+        cursor.execute(fetch_platform_data, (platform_id,))
+        platform = cursor.fetchone()
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"success" : False, "message" : "An error occurred"}
+        )
+    finally:
+        connection.close()
+
+    # on successful operation, send status 200 and messages
+    raise HTTPException(
+        status_code=status.HTTP_200_OK,
+        detail={ "success" : True, "platform": platform}
+    )
+
+
 # get all games under that genre
 @router.get("/genre/{genre_id}")
 def get_genre_games(genre_id):
@@ -46,13 +72,20 @@ def get_genre_games(genre_id):
         connection = get_db_connection()
         # create a cursor object
         cursor = connection.cursor()
+
+        fetch_genre_info_query = """
+            SELECT name FROM GENRE WHERE genre_id = %s;
+            """
+        cursor.execute(fetch_genre_info_query, (genre_id,))
+        genre_name = cursor.fetchone()["name"]
+
         fetch_games_by_genre = """
             SELECT g.game_id, g.title AS game_title, g.image_url, gen.name AS genre_name
             FROM GAME g
             JOIN GENRE gen ON g.genre_id = gen.genre_id
             WHERE g.genre_id = %s;
             """
-        cursor.execute(fetch_games_by_genre, genre_id)
+        cursor.execute(fetch_games_by_genre, (genre_id,))
         games = cursor.fetchall()
     except Exception as e:
         print(e)
@@ -66,7 +99,7 @@ def get_genre_games(genre_id):
     # on successful operation, send status 200 and messages
     raise HTTPException(
         status_code=status.HTTP_200_OK,
-        detail={ "success" : True, "games": games}
+        detail={ "success" : True, "games": games, "genre_name": genre_name}
     )
 
 
@@ -86,7 +119,7 @@ async def post_genre(genre_data: Genre, current_user: Annotated[User, Depends(ge
         # create a cursor object
         cursor = connection.cursor()
         add_genre_query = "INSERT INTO genre (name) VALUES (%s)"
-        cursor.execute(add_genre_query, (name))
+        cursor.execute(add_genre_query, (name,))
         connection.commit()
     except Exception as e:
         print(e)
@@ -118,7 +151,7 @@ async def put_genre(genre_id: int, genre_data: Genre, current_user: Annotated[Us
         # create a cursor object
         cursor = connection.cursor()
         # check if the entry exists first
-        cursor.execute("SELECT * FROM genre WHERE genre_id = %s", genre_id)
+        cursor.execute("SELECT * FROM genre WHERE genre_id = %s", (genre_id))
         genre = cursor.fetchone()
         if not genre:
             raise HTTPException(

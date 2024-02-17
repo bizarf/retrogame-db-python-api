@@ -45,7 +45,7 @@ def post_user_register(user_registration: UserRegistration):
         # create a cursor object
         cursor = connection.cursor()
         add_user_query = "INSERT INTO users (username, email, password, join_date) VALUES (%s, %s, %s, %s)"
-        cursor.execute(add_user_query, (username, email, hashed_password, join_date))
+        cursor.execute(add_user_query, (username, email, hashed_password, join_date,))
         connection.commit()
     except Exception as e:
         print(e)
@@ -72,7 +72,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         # Check if user exists and verify password
         connection = get_db_connection()
         cursor = connection.cursor()
-        cursor.execute("SELECT * FROM users WHERE email = %s", email)
+        cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
         user = cursor.fetchone()
         if not user or not verify_password(password, user["password"]):
             raise HTTPException(

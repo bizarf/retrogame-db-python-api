@@ -54,7 +54,7 @@ def get_platform_data(platform_id):
         # create a cursor object
         cursor = connection.cursor()
         fetch_platform_data = "SELECT * FROM platform WHERE platform_id = %s"
-        cursor.execute(fetch_platform_data, platform_id)
+        cursor.execute(fetch_platform_data, (platform_id,))
         platform = cursor.fetchone()
     except Exception as e:
         print(e)
@@ -92,7 +92,7 @@ def get_platform_games(platform_id: int):
             JOIN PLATFORM p ON g.platform_id = p.platform_id
             WHERE g.platform_id = %s;
             """
-        cursor.execute(fetch_games_for_platform_query, platform_id)
+        cursor.execute(fetch_games_for_platform_query, (platform_id,))
         games = cursor.fetchall()
     except Exception as e:
         print(e)
@@ -163,7 +163,7 @@ async def put_platform(platform_id: int, platform_data: Platform, current_user: 
         # create a cursor object
         cursor = connection.cursor()
         # check if the entry exists first
-        cursor.execute("SELECT * FROM platform WHERE platform_id = %s", platform_id)
+        cursor.execute("SELECT * FROM platform WHERE platform_id = %s", (platform_id,))
         platform = cursor.fetchone()
         if not platform:
             raise HTTPException(
@@ -203,7 +203,7 @@ async def delete_platform(platform_id:int, current_user: Annotated[User, Depends
         cursor = connection.cursor()
 
         # check if the entry exists first
-        cursor.execute("SELECT * FROM platform WHERE platform_id = %s", platform_id)
+        cursor.execute("SELECT * FROM platform WHERE platform_id = %s", (platform_id,))
         platform = cursor.fetchone()
         if not platform:
             raise HTTPException(
@@ -211,7 +211,7 @@ async def delete_platform(platform_id:int, current_user: Annotated[User, Depends
             detail="Platform not found"
         )
         delete_platform_query = "DELETE FROM platform WHERE platform_id = %s"
-        cursor.execute(delete_platform_query, (platform_id))
+        cursor.execute(delete_platform_query, (platform_id,))
         connection.commit()
     except Exception as e:
         print(e)
