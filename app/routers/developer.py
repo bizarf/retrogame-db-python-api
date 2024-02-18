@@ -38,6 +38,33 @@ def get_developers():
     )
 
 
+# fetch all data about a single developer
+@router.get("/developer-data/{developer_id}")
+def get_developer_data(developer_id):
+    try:        
+        # make a database connection
+        connection = get_db_connection()
+        # create a cursor object
+        cursor = connection.cursor()
+        fetch_platform_data = "SELECT * FROM developer WHERE developer_id = %s"
+        cursor.execute(fetch_platform_data, (developer_id,))
+        developer = cursor.fetchone()
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"success" : False, "message" : "An error occurred"}
+        )
+    finally:
+        connection.close()
+
+    # on successful operation, send status 200 and messages
+    raise HTTPException(
+        status_code=status.HTTP_200_OK,
+        detail={ "success" : True, "developer": developer}
+    )
+
+
 # get all games developed by the developer
 @router.get("/developer/{developer_id}")
 def get_developer_games(developer_id):
@@ -52,7 +79,7 @@ def get_developer_games(developer_id):
             JOIN DEVELOPER d ON g.developer_id = d.developer_id
             WHERE g.developer_id = %s;
             """
-        cursor.execute(fetch_games_by_developer, developer_id)
+        cursor.execute(fetch_games_by_developer, (developer_id,))
         games = cursor.fetchall()
     except Exception as e:
         print(e)
@@ -86,7 +113,7 @@ def post_developer(developer_data: Developer, current_user: Annotated[User, Depe
         # create a cursor object
         cursor = connection.cursor()
         add_developer_query = "INSERT INTO developer (name) VALUES (%s)"
-        cursor.execute(add_developer_query, name)
+        cursor.execute(add_developer_query, (name,))
         connection.commit()
     except Exception as e:
         print(e)
@@ -118,7 +145,7 @@ def put_developer(developer_id: int, developer_data: Developer, current_user: An
         # create a cursor object
         cursor = connection.cursor()
         # check if the entry exists first
-        cursor.execute("SELECT * FROM developer WHERE developer_id = %s", developer_id)
+        cursor.execute("SELECT * FROM developer WHERE developer_id = %s", (developer_id,))
         developer = cursor.fetchone()
         if not developer:
             raise HTTPException(
@@ -126,7 +153,7 @@ def put_developer(developer_id: int, developer_data: Developer, current_user: An
             detail="Developer not found"
         )
         update_developer_query = "UPDATE developer SET name = %s WHERE developer_id = %s"
-        cursor.execute(update_developer_query, (name, developer_id))
+        cursor.execute(update_developer_query, (name, developer_id,))
         connection.commit()
     except Exception as e:
         print(e)
@@ -158,7 +185,7 @@ def delete_developer(developer_id:int, current_user: Annotated[User, Depends(get
         cursor = connection.cursor()
 
         # check if the entry exists first
-        cursor.execute("SELECT * FROM developer WHERE developer_id = %s", developer_id)
+        cursor.execute("SELECT * FROM developer WHERE developer_id = %s", (developer_id,))
         developer = cursor.fetchone()
         if not developer:
             raise HTTPException(
@@ -166,7 +193,7 @@ def delete_developer(developer_id:int, current_user: Annotated[User, Depends(get
             detail="Developer not found"
         )
         delete_developer_query = "DELETE FROM developer WHERE developer_id = %s"
-        cursor.execute(delete_developer_query, developer_id)
+        cursor.execute(delete_developer_query, (developer_id,))
         connection.commit()
     except Exception as e:
         print(e)

@@ -54,7 +54,7 @@ def get_game(game_id):
         # create a cursor object
         cursor = connection.cursor()
         select_single_game_query = "SELECT * FROM game WHERE game_id = %s"
-        cursor.execute(select_single_game_query, game_id)
+        cursor.execute(select_single_game_query, (game_id,))
         game = cursor.fetchone()
     except Exception as e:
         print(e)
@@ -93,12 +93,11 @@ async def post_game(game_data: Game, current_user: Annotated[User, Depends(get_c
         image_url = game_data.image_url
 
         values = (title, description, release_year, genre_id, platform_id, publisher_id, developer_id, image_url)
-        print(platform_id)
 
         # create a cursor object
         cursor = connection.cursor()
         add_game_query = "INSERT INTO game (title, description, release_year, platform_id, publisher_id, developer_id, image_url) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
-        cursor.execute(add_game_query, values)
+        cursor.execute(add_game_query, (values,))
         connection.commit()
     except Exception as e:
         print(e)
@@ -141,7 +140,7 @@ async def put_game(game_id: int, game_data: Game, current_user: Annotated[User, 
         # create a cursor object
         cursor = connection.cursor()
         # check if the entry exists first
-        cursor.execute("SELECT * FROM game WHERE game_id = %s", game_id)
+        cursor.execute("SELECT * FROM game WHERE game_id = %s", (game_id,))
         game = cursor.fetchone()
         if not game:
             raise HTTPException(
@@ -149,7 +148,7 @@ async def put_game(game_id: int, game_data: Game, current_user: Annotated[User, 
             detail="Game not found"
         )
         update_game_query = "UPDATE game SET title = %s, description = %s, release_year = %s, genre_id = %s, platform_id = %s, publisher_id = %s, developer_id = %s, image_url = %s, WHERE game_id = %s"
-        cursor.execute(update_game_query, values)
+        cursor.execute(update_game_query, (values,))
         connection.commit()
     except Exception as e:
         print(e)
@@ -181,7 +180,7 @@ async def delete_game(game_id:int, current_user: Annotated[User, Depends(get_cur
         cursor = connection.cursor()
 
         # check if the entry exists first
-        cursor.execute("SELECT * FROM game WHERE game_id = %s", game_id)
+        cursor.execute("SELECT * FROM game WHERE game_id = %s", (game_id,))
         game = cursor.fetchone()
         if not game:
             raise HTTPException(
@@ -189,7 +188,7 @@ async def delete_game(game_id:int, current_user: Annotated[User, Depends(get_cur
             detail="game not found"
         )
         delete_game_query = "DELETE FROM game WHERE game_id = %s"
-        cursor.execute(delete_game_query, game_id)
+        cursor.execute(delete_game_query, (game_id,))
         connection.commit()
     except Exception as e:
         print(e)

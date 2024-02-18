@@ -38,6 +38,33 @@ def get_publishers():
     )
 
 
+# fetch all data about a single publisher
+@router.get("/publisher-data/{publisher_id}")
+def get_publisher_data(publisher_id):
+    try:        
+        # make a database connection
+        connection = get_db_connection()
+        # create a cursor object
+        cursor = connection.cursor()
+        fetch_platform_data = "SELECT * FROM publisher WHERE publisher_id = %s"
+        cursor.execute(fetch_platform_data, (publisher_id,))
+        publisher = cursor.fetchone()
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"success" : False, "message" : "An error occurred"}
+        )
+    finally:
+        connection.close()
+
+    # on successful operation, send status 200 and messages
+    raise HTTPException(
+        status_code=status.HTTP_200_OK,
+        detail={ "success" : True, "publisher": publisher}
+    )
+
+
 # get all games released by the publisher
 @router.get("/publisher/{publisher_id}")
 def get_publisher_games(publisher_id):
@@ -52,7 +79,7 @@ def get_publisher_games(publisher_id):
             JOIN publisher p ON g.publisher_id = p.publisher_id
             WHERE g.developer_id = %s;
             """
-        cursor.execute(fetch_games_by_publisher, publisher_id)
+        cursor.execute(fetch_games_by_publisher, (publisher_id,))
         games = cursor.fetchall()
     except Exception as e:
         print(e)
@@ -86,7 +113,7 @@ async def post_publisher(publisher_data: Publisher, current_user: Annotated[User
         # create a cursor object
         cursor = connection.cursor()
         add_publisher_query = "INSERT INTO publisher (name) VALUES (%s)"
-        cursor.execute(add_publisher_query, (name))
+        cursor.execute(add_publisher_query, (name,))
         connection.commit()
     except Exception as e:
         print(e)
@@ -118,7 +145,7 @@ async def put_publisher(publisher_id: int, publisher_data: Publisher, current_us
         # create a cursor object
         cursor = connection.cursor()
         # check if the entry exists first
-        cursor.execute("SELECT * FROM publisher WHERE publisher_id = %s", publisher_id)
+        cursor.execute("SELECT * FROM publisher WHERE publisher_id = %s", (publisher_id,))
         publisher = cursor.fetchone()
         if not publisher:
             raise HTTPException(
@@ -126,7 +153,7 @@ async def put_publisher(publisher_id: int, publisher_data: Publisher, current_us
             detail="Publisher not found"
         )
         update_publisher_query = "UPDATE publisher SET name = %s WHERE publisher_id = %s"
-        cursor.execute(update_publisher_query, (name, publisher_id))
+        cursor.execute(update_publisher_query, (name, publisher_id,))
         connection.commit()
     except Exception as e:
         print(e)
@@ -158,7 +185,7 @@ async def delete_publisher(publisher_id:int, current_user: Annotated[User, Depen
         cursor = connection.cursor()
 
         # check if the entry exists first
-        cursor.execute("SELECT * FROM publisher WHERE publisher_id = %s", publisher_id)
+        cursor.execute("SELECT * FROM publisher WHERE publisher_id = %s", (publisher_id,))
         publisher = cursor.fetchone()
         if not publisher:
             raise HTTPException(
@@ -166,7 +193,7 @@ async def delete_publisher(publisher_id:int, current_user: Annotated[User, Depen
             detail="Publisher not found"
         )
         delete_publisher_query = "DELETE FROM publisher WHERE publisher_id = %s"
-        cursor.execute(delete_publisher_query, (publisher_id))
+        cursor.execute(delete_publisher_query, (publisher_id,))
         connection.commit()
     except Exception as e:
         print(e)

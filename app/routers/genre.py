@@ -38,16 +38,17 @@ def get_genres():
     )
 
 
+# fetch all data about a single genre
 @router.get("/genre-data/{genre_id}")
-def get_platform_data(platform_id):
+def get_genre_data(genre_id):
     try:        
         # make a database connection
         connection = get_db_connection()
         # create a cursor object
         cursor = connection.cursor()
-        fetch_platform_data = "SELECT * FROM platform WHERE platform_id = %s"
-        cursor.execute(fetch_platform_data, (platform_id,))
-        platform = cursor.fetchone()
+        fetch_platform_data = "SELECT * FROM genre WHERE genre_id = %s"
+        cursor.execute(fetch_platform_data, (genre_id,))
+        genre = cursor.fetchone()
     except Exception as e:
         print(e)
         raise HTTPException(
@@ -60,7 +61,7 @@ def get_platform_data(platform_id):
     # on successful operation, send status 200 and messages
     raise HTTPException(
         status_code=status.HTTP_200_OK,
-        detail={ "success" : True, "platform": platform}
+        detail={ "success" : True, "genre": genre}
     )
 
 

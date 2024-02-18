@@ -46,6 +46,7 @@ def get_platforms():
     )
 
 
+# fetch all data about single platform
 @router.get("/platform-data/{platform_id}")
 def get_platform_data(platform_id):
     try:        

@@ -29,7 +29,7 @@ def get_games(current_user: Annotated[User, Depends(get_current_user)]):
         JOIN GAME g ON f.game_id = g.game_id
         WHERE f.user_id = %s;
         """
-        cursor.execute(get_faves_query, current_user["user_id"])
+        cursor.execute(get_faves_query, (current_user["user_id"],))
         rows = cursor.fetchall()
     except Exception as e:
         print(e)
@@ -63,7 +63,7 @@ async def post_favourites(favourites_data: Favourites, current_user: Annotated[U
         # create a cursor object
         cursor = connection.cursor()
         add_favourite_query = "INSERT INTO FAVOURITES (user_id, game_id, timestamp) VALUES (%s, %s, %s)"
-        cursor.execute(add_favourite_query, values)
+        cursor.execute(add_favourite_query, (values,))
         connection.commit()
     except Exception as e:
         print(e)
@@ -89,7 +89,7 @@ async def delete_genre(favourite_id:int, current_user: Annotated[User, Depends(g
         cursor = connection.cursor()
 
         # check if the entry exists first
-        cursor.execute("SELECT * FROM favourites WHERE favourite_id = %s", favourite_id)
+        cursor.execute("SELECT * FROM favourites WHERE favourite_id = %s", (favourite_id,))
         favourite = cursor.fetchone()
         if not favourite:
             raise HTTPException(
@@ -103,7 +103,7 @@ async def delete_genre(favourite_id:int, current_user: Annotated[User, Depends(g
             detail={"message": "You are unauthorized to delete this favourite"}
         )
         delete_genre_query = "DELETE FROM favourites WHERE favourite_id = %s"
-        cursor.execute(delete_genre_query, favourite_id)
+        cursor.execute(delete_genre_query, (favourite_id,))
         connection.commit()
     except Exception as e:
         print(e)
