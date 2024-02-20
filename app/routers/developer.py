@@ -153,7 +153,7 @@ def put_developer(developer_id: int, developer_data: Developer, current_user: An
             detail="Developer not found"
         )
         update_developer_query = "UPDATE developer SET name = %s WHERE developer_id = %s"
-        cursor.execute(update_developer_query, (name, developer_id,))
+        cursor.execute(update_developer_query, (name, developer_id))
         connection.commit()
     except Exception as e:
         print(e)

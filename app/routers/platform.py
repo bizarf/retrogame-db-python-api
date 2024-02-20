@@ -128,7 +128,7 @@ async def post_platform(platform_data: Platform, current_user: Annotated[User, D
         # create a cursor object
         cursor = connection.cursor()
         add_platform_query = "INSERT INTO platform (name, logo_url) VALUES (%s, %s)"
-        cursor.execute(add_platform_query, (name, logo_url,))
+        cursor.execute(add_platform_query, (name, logo_url))
         connection.commit()
     except Exception as e:
         print(e)

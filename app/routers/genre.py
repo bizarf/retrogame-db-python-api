@@ -13,7 +13,7 @@ class Genre(BaseModel):
 
 
 # get all genres
-@router.get("/genre/")
+@router.get("/genres/")
 def get_genres():
     try:        
         # make a database connection
@@ -152,7 +152,7 @@ async def put_genre(genre_id: int, genre_data: Genre, current_user: Annotated[Us
         # create a cursor object
         cursor = connection.cursor()
         # check if the entry exists first
-        cursor.execute("SELECT * FROM genre WHERE genre_id = %s", (genre_id))
+        cursor.execute("SELECT * FROM genre WHERE genre_id = %s", (genre_id,))
         genre = cursor.fetchone()
         if not genre:
             raise HTTPException(
@@ -192,7 +192,7 @@ async def delete_genre(genre_id:int, current_user: Annotated[User, Depends(get_c
         cursor = connection.cursor()
 
         # check if the entry exists first
-        cursor.execute("SELECT * FROM genre WHERE genre_id = %s", genre_id)
+        cursor.execute("SELECT * FROM genre WHERE genre_id = %s", (genre_id,))
         genre = cursor.fetchone()
         if not genre:
             raise HTTPException(
@@ -200,7 +200,7 @@ async def delete_genre(genre_id:int, current_user: Annotated[User, Depends(get_c
             detail="Genre not found"
         )
         delete_genre_query = "DELETE FROM genre WHERE genre_id = %s"
-        cursor.execute(delete_genre_query, (genre_id))
+        cursor.execute(delete_genre_query, (genre_id,))
         connection.commit()
     except Exception as e:
         print(e)

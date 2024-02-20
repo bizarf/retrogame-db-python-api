@@ -42,10 +42,12 @@ def post_user_register(user_registration: UserRegistration):
         # generate the datetime, and format it to the mysql requirement
         join_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
+        values = (username, email, hashed_password, join_date)
+
         # create a cursor object
         cursor = connection.cursor()
         add_user_query = "INSERT INTO users (username, email, password, join_date) VALUES (%s, %s, %s, %s)"
-        cursor.execute(add_user_query, (username, email, hashed_password, join_date,))
+        cursor.execute(add_user_query, values)
         connection.commit()
     except Exception as e:
         print(e)

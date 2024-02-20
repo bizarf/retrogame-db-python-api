@@ -13,7 +13,7 @@ class Publisher(BaseModel):
 
 
 # get publishers
-@router.get("/publisher/")
+@router.get("/publishers/")
 def get_publishers():
     try:        
         # make a database connection
@@ -153,7 +153,7 @@ async def put_publisher(publisher_id: int, publisher_data: Publisher, current_us
             detail="Publisher not found"
         )
         update_publisher_query = "UPDATE publisher SET name = %s WHERE publisher_id = %s"
-        cursor.execute(update_publisher_query, (name, publisher_id,))
+        cursor.execute(update_publisher_query, (name, publisher_id))
         connection.commit()
     except Exception as e:
         print(e)

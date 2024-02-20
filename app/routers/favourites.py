@@ -63,7 +63,7 @@ async def post_favourites(favourites_data: Favourites, current_user: Annotated[U
         # create a cursor object
         cursor = connection.cursor()
         add_favourite_query = "INSERT INTO FAVOURITES (user_id, game_id, timestamp) VALUES (%s, %s, %s)"
-        cursor.execute(add_favourite_query, (values,))
+        cursor.execute(add_favourite_query, values)
         connection.commit()
     except Exception as e:
         print(e)
