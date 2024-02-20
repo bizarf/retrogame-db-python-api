@@ -88,11 +88,12 @@ def get_platform_games(platform_id: int):
         platform_name = cursor.fetchone()["name"]
 
         fetch_games_for_platform_query = """
-            SELECT g.game_id, g.title AS game_title, g.image_url, p.name AS platform_name
+            SELECT g.game_id, g.title AS game_title, g.image_url, gen.name AS genre_name
             FROM GAME g
-            JOIN PLATFORM p ON g.platform_id = p.platform_id
+            JOIN GENRE gen ON g.genre_id = gen.genre_id
             WHERE g.platform_id = %s;
             """
+            
         cursor.execute(fetch_games_for_platform_query, (platform_id,))
         games = cursor.fetchall()
     except Exception as e:

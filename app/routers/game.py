@@ -53,7 +53,16 @@ def get_game(game_id):
         connection = get_db_connection()
         # create a cursor object
         cursor = connection.cursor()
-        select_single_game_query = "SELECT * FROM game WHERE game_id = %s"
+        # select_single_game_query = "SELECT * FROM game WHERE game_id = %s"
+        select_single_game_query = """
+            SELECT g.game_id, g.title, g.description, g.release_year, gen.name AS genre_name, plat.name AS platform_name, pub.name AS publisher_name, d.name AS developer_name
+            FROM GAME g
+            JOIN GENRE gen ON g.genre_id = gen.genre_id
+            JOIN PLATFORM plat ON g.platform_id = plat.platform_id
+            JOIN PUBLISHER pub ON g.publisher_id = pub.publisher_id
+            JOIN DEVELOPER d ON g.developer_id = d.developer_id
+            WHERE game_id = %s;
+            """
         cursor.execute(select_single_game_query, (game_id,))
         game = cursor.fetchone()
     except Exception as e:
