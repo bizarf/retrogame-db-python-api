@@ -1,6 +1,11 @@
-# retrogame-db-python-api
+# RetroGame-DB - FastAPI - Python API
 
 This is a project where I'm making an API for a retro video game themed database using FastAPI with PyMySQL. The goal is to test and showcase the Python and MySQL knowledge that I have gained.
+
+-   [View the live client site here](https://bizarf.github.io/retrogame-db-client/)
+-   [View the RetroGame DB client repo](https://github.com/bizarf/retrogame-db-python-api)
+
+<hr>
 
 #### Install:
 
@@ -42,7 +47,19 @@ uvicorn app.main:app --reload
 <hr>
 #### Features
 
--   []
+-   [x] JWT authentication system with locked routes
+-   [x] JWT access token updating via a JWT refresh token function
+-   [x] MySQL integration with PyMySQL
+-   [x] CRUD operations for admin level users
+-   [x] Routes for handling users data
+-   [x] Routes for handling platform data
+-   [x] Routes for handling genre data
+-   [x] Routes for handling developer data
+-   [x] Routes for handling publisher data
+-   [x] Routes for handling game data
+-   [x] Routes for handling favourites data
+-   [x] Routes for generating new access tokens
+-   [] Routes for rating games system
 
 <hr>
 
