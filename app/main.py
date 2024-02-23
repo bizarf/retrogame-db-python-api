@@ -16,7 +16,7 @@ app = FastAPI()
 # cors stuff. must change allow_origin to github later
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://bizarf.github.io/retrogame-db-client"],
+    allow_origins=["https://bizarf.github.io/"],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["Content-Type", "Authorization"],
