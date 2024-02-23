@@ -11,14 +11,15 @@ from app.routers import (
     token,
 )
 
+
 app = FastAPI()
 # cors stuff. must change allow_origin to github later
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["https://bizarf.github.io/retrogame-db-client"],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
-    allow_headers=["*"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 
