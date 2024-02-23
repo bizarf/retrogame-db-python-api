@@ -2,6 +2,7 @@ import pymysql
 from databaseConnection import get_db_connection
 
 
+# this script will create the necessary tables for the database
 try:
     # get the connection object
     connection = get_db_connection()
@@ -27,6 +28,12 @@ try:
             name VARCHAR(100) NOT NULL UNIQUE
         );"""
 
+    create_genre_tbl = """
+        CREATE TABLE IF NOT EXISTS genre(
+            genre_id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(100) NOT NULL UNIQUE
+        );"""
+
     create_game_tbl = """
         CREATE TABLE IF NOT EXISTS game(
             game_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -38,15 +45,10 @@ try:
             publisher_id INT NOT NULL,
             developer_id INT NOT NULL,
             image_url VARCHAR(255),
+            FOREIGN KEY (genre_id) REFERENCES genre(genre_id),
             FOREIGN KEY (platform_id) REFERENCES platform(platform_id),
             FOREIGN KEY (publisher_id) REFERENCES publisher(publisher_id),
             FOREIGN KEY (developer_id) REFERENCES developer(developer_id)
-        );"""
-
-    create_genre_tbl = """
-        CREATE TABLE IF NOT EXISTS genre(
-            genre_id INT AUTO_INCREMENT PRIMARY KEY,
-            name VARCHAR(100) NOT NULL UNIQUE
         );"""
 
     create_users_tbl = """
@@ -83,8 +85,8 @@ try:
     cursor.execute(create_platform_tbl)
     cursor.execute(create_publisher_tbl)
     cursor.execute(create_developer_tbl)
-    cursor.execute(create_game_tbl)
     cursor.execute(create_genre_tbl)
+    cursor.execute(create_game_tbl)
     cursor.execute(create_users_tbl)
     cursor.execute(create_ratings_tbl)
     cursor.execute(create_favourites_tbl)

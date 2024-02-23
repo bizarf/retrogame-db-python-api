@@ -12,6 +12,9 @@ class Developer(BaseModel):
     name: str
 
 
+# aiven is case sensitive? tables must be lowercase
+
+
 # get all developers
 @router.get("/developers/")
 def get_developers():
@@ -73,17 +76,17 @@ def get_developer_games(developer_id):
         cursor = connection.cursor()
 
         fetch_developer_info_query = """
-            SELECT name FROM DEVELOPER WHERE developer_id = %s;
+            SELECT name FROM developer WHERE developer_id = %s;
             """
         cursor.execute(fetch_developer_info_query, (developer_id,))
         developer_name = cursor.fetchone()["name"]
 
         fetch_games_by_developer = """
             SELECT g.game_id, g.title AS game_title, g.image_url, g.genre_id, gen.name AS genre_name, g.platform_id, p.name AS platform_name, g.publisher_id, pub.name AS publisher_name
-            FROM GAME g
-            JOIN GENRE gen ON g.genre_id = gen.genre_id
-            JOIN PLATFORM p ON g.platform_id = p.platform_id
-            JOIN PUBLISHER pub ON g.publisher_id = pub.publisher_id
+            FROM game g
+            JOIN genre gen ON g.genre_id = gen.genre_id
+            JOIN platform p ON g.platform_id = p.platform_id
+            JOIN publisher pub ON g.publisher_id = pub.publisher_id
             WHERE g.developer_id = %s;
             """
         cursor.execute(fetch_games_by_developer, (developer_id,))

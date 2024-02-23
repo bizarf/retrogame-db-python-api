@@ -54,11 +54,11 @@ def get_game(game_id):
         cursor = connection.cursor()
         select_single_game_query = """
             SELECT g.*, gen.genre_id, gen.name AS genre_name, plat.platform_id, plat.name AS platform_name, pub.publisher_id, pub.name AS publisher_name, d.developer_id, d.name AS developer_name
-            FROM GAME g
-            JOIN GENRE gen ON g.genre_id = gen.genre_id
-            JOIN PLATFORM plat ON g.platform_id = plat.platform_id
-            JOIN PUBLISHER pub ON g.publisher_id = pub.publisher_id
-            JOIN DEVELOPER d ON g.developer_id = d.developer_id
+            FROM game g
+            JOIN genre gen ON g.genre_id = gen.genre_id
+            JOIN platform plat ON g.platform_id = plat.platform_id
+            JOIN publisher pub ON g.publisher_id = pub.publisher_id
+            JOIN developer d ON g.developer_id = d.developer_id
             WHERE g.game_id = %s;
             """
         cursor.execute(select_single_game_query, (game_id,))

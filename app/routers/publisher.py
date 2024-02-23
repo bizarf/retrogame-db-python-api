@@ -73,17 +73,17 @@ def get_publisher_games(publisher_id):
         cursor = connection.cursor()
 
         fetch_publisher_info_query = """
-            SELECT name FROM PUBLISHER WHERE publisher_id = %s;
+            SELECT name FROM publisher WHERE publisher_id = %s;
             """
         cursor.execute(fetch_publisher_info_query, (publisher_id,))
         publisher_name = cursor.fetchone()["name"]
 
         fetch_games_by_publisher = """
             SELECT g.game_id, g.title AS game_title, g.image_url, g.platform_id, p.name AS platform_name, g.genre_id, gen.name AS genre_name, g.developer_id, d.name AS developer_name
-            FROM GAME g
-            JOIN PLATFORM p ON g.platform_id = p.platform_id
-            JOIN GENRE gen ON g.genre_id = gen.genre_id
-            JOIN DEVELOPER d ON g.developer_id = d.developer_id
+            FROM game g
+            JOIN platform p ON g.platform_id = p.platform_id
+            JOIN genre gen ON g.genre_id = gen.genre_id
+            JOIN developer d ON g.developer_id = d.developer_id
             WHERE g.developer_id = %s;
             """
         cursor.execute(fetch_games_by_publisher, (publisher_id,))

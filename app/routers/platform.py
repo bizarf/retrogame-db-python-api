@@ -87,17 +87,17 @@ def get_platform_games(platform_id: int):
         # create a cursor object
         cursor = connection.cursor()
         fetch_platform_info_query = """
-            SELECT name FROM PLATFORM WHERE platform_id = %s;
+            SELECT name FROM platform WHERE platform_id = %s;
             """
         cursor.execute(fetch_platform_info_query, (platform_id,))
         platform_name = cursor.fetchone()["name"]
 
         fetch_games_for_platform_query = """
             SELECT g.game_id, g.title AS game_title, g.image_url, gen.name AS genre_name, g.genre_id, g.developer_id, d.name AS developer_name, g.publisher_id, pub.name AS publisher_name
-            FROM GAME g
-            JOIN GENRE gen ON g.genre_id = gen.genre_id
-            JOIN DEVELOPER d ON d.developer_id = g.developer_id
-            JOIN PUBLISHER pub ON pub.publisher_id = g.publisher_id
+            FROM game g
+            JOIN genre gen ON g.genre_id = gen.genre_id
+            JOIN developer d ON d.developer_id = g.developer_id
+            JOIN publisher pub ON pub.publisher_id = g.publisher_id
             WHERE g.platform_id = %s;
             """
 

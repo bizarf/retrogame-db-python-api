@@ -24,12 +24,12 @@ async def get_games(current_user: Annotated[User, Depends(get_current_user)]):
         cursor = connection.cursor()
         get_faves_query = """
         SELECT f.favourite_id, g.game_id, g.title AS game_title, g.release_year, g.image_url, gen.genre_id, gen.name AS genre_name, plat.platform_id, plat.name AS platform_name, pub.publisher_id, pub.name AS publisher_name, d.developer_id, d.name AS developer_name
-        FROM FAVOURITES f
-        JOIN GAME g ON f.game_id = g.game_id
-        JOIN GENRE gen ON g.genre_id = gen.genre_id
-        JOIN PLATFORM plat ON plat.platform_id = g.platform_id
-        JOIN PUBLISHER pub ON pub.publisher_id = g.publisher_id
-        JOIN DEVELOPER d ON d.developer_id = g.developer_id
+        FROM favourites f
+        JOIN game g ON f.game_id = g.game_id
+        JOIN genre gen ON g.genre_id = gen.genre_id
+        JOIN platform plat ON plat.platform_id = g.platform_id
+        JOIN publisher pub ON pub.publisher_id = g.publisher_id
+        JOIN developer d ON d.developer_id = g.developer_id
         WHERE f.user_id = %s;
         """
         cursor.execute(get_faves_query, (current_user["user_id"],))
@@ -61,7 +61,7 @@ async def get_fave_check(
         cursor = connection.cursor()
 
         get_fave_query = """
-        SELECT favourite_id FROM FAVOURITES
+        SELECT favourite_id FROM favourites
         WHERE user_id = %s AND game_id = %s;
         """
 
@@ -103,7 +103,7 @@ async def post_favourites(
         # create a cursor object
         cursor = connection.cursor()
         check_favourite_query = (
-            "SELECT * FROM FAVOURITES WHERE game_id = %s AND user_id = %s"
+            "SELECT * FROM favourites WHERE game_id = %s AND user_id = %s"
         )
         cursor.execute(check_favourite_query, (game_id, user_id))
         existingFave = cursor.fetchone()
@@ -114,7 +114,7 @@ async def post_favourites(
             )
 
         add_favourite_query = (
-            "INSERT INTO FAVOURITES (user_id, game_id, timestamp) VALUES (%s, %s, %s)"
+            "INSERT INTO favourites (user_id, game_id, timestamp) VALUES (%s, %s, %s)"
         )
 
         cursor.execute(add_favourite_query, values)
