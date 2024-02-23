@@ -5,10 +5,11 @@ from typing import Annotated
 from datetime import datetime
 from app.pymysql.databaseConnection import get_db_connection
 from app.utils import (
-    verify_password, 
-    get_password_hash, 
-    create_access_token, 
-    create_refresh_token)
+    verify_password,
+    get_password_hash,
+    create_access_token,
+    create_refresh_token,
+)
 from app.dependencies import get_current_user
 from app.models.User import User
 
@@ -40,7 +41,7 @@ def post_user_register(user_registration: UserRegistration):
         # hash the password here
         hashed_password = get_password_hash(user_registration.password)
         # generate the datetime, and format it to the mysql requirement
-        join_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        join_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         values = (username, email, hashed_password, join_date)
 
@@ -53,14 +54,14 @@ def post_user_register(user_registration: UserRegistration):
         print(e)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"success" : False, "message" : "Failed to add user"}
+            detail={"success": False, "message": "Failed to add user"},
         )
     finally:
         connection.close()
     # on successful operation, send status 200 and messages
     raise HTTPException(
         status_code=status.HTTP_200_OK,
-        detail={ "success" : True, "message": "User added successfully"}
+        detail={"success": True, "message": "User added successfully"},
     )
 
 
@@ -79,27 +80,27 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         if not user or not verify_password(password, user["password"]):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Incorrect email or password"
+                detail="Incorrect email or password",
             )
     except Exception as e:
         print(e)
         raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Incorrect email or password"
-            )
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect email or password",
+        )
     finally:
         connection.close()
 
     # Generate access and refresh tokens
-    access_token = create_access_token(
-        data={"sub": user["email"]}
-    )
-    refresh_token = create_refresh_token(
-        data={"sub": user["email"]}
-    )
+    access_token = create_access_token(data={"sub": user["email"]})
+    refresh_token = create_refresh_token(data={"sub": user["email"]})
 
     # Return access token
-    return {"success":True, "access_token": access_token, "refresh_token": refresh_token}
+    return {
+        "success": True,
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+    }
 
 
 # fetch user details
@@ -112,7 +113,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 #         cursor = connection.cursor()
 #         # check if the entry exists first
 #         cursor.execute("SELECT username, email, join_date FROM users WHERE user_id = %s", user_id)
-#         user = cursor.fetchone() 
+#         user = cursor.fetchone()
 #     except Exception as e:
 #         print(e)
 #         raise HTTPException(
@@ -142,7 +143,5 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 
 # returns the current user
 @router.get("/users/me/", response_model=User)
-async def read_users_me(
-    current_user: Annotated[User, Depends(get_current_user)]
-):
+async def read_users_me(current_user: Annotated[User, Depends(get_current_user)]):
     return current_user

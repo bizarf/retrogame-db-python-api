@@ -13,8 +13,8 @@ def get_db_connection():
         user=os.getenv("MYSQL_USER"),
         password=os.getenv("MYSQL_PASSWORD"),
         database=os.getenv("MYSQL_DATABASE"),
-        cursorclass=pymysql.cursors.DictCursor
-        )
+        cursorclass=pymysql.cursors.DictCursor,
+    )
     # timeout = 10
 
     # connection = pymysql.connect(

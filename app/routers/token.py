@@ -3,6 +3,7 @@ from app.utils import create_access_token, verify_refresh_token, update_refresh_
 
 router = APIRouter()
 
+
 @router.post("/token/refresh")
 async def refresh_access_token(refresh_token: str):
     try:
@@ -16,7 +17,11 @@ async def refresh_access_token(refresh_token: str):
         updated_refresh_token = update_refresh_token(refresh_token)
 
         # Return the new access token
-        return {"success":True, "access_token": new_access_token, "refresh_token": updated_refresh_token}
+        return {
+            "success": True,
+            "access_token": new_access_token,
+            "refresh_token": updated_refresh_token,
+        }
 
     except Exception as e:
         print(e)

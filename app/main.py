@@ -1,30 +1,30 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import (
-    users, 
+    users,
     platform,
     genre,
     developer,
     publisher,
     game,
     favourites,
-    token
-    )
+    token,
+)
 
 app = FastAPI()
 # cors stuff. must change allow_origin to github later
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],    
+    allow_origins=["http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
-    )
+)
 
 
 @app.get("/")
 def root():
-    return {"message":"Welcome to the RetroGame API"}
+    return {"message": "Welcome to the RetroGame API"}
 
 
 app.include_router(users.router)

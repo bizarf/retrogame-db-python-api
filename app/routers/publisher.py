@@ -15,7 +15,7 @@ class Publisher(BaseModel):
 # get publishers
 @router.get("/publishers/")
 def get_publishers():
-    try:        
+    try:
         # make a database connection
         connection = get_db_connection()
         # create a cursor object
@@ -26,22 +26,21 @@ def get_publishers():
         print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={"success" : False, "message" : "An error occurred"}
+            detail={"success": False, "message": "An error occurred"},
         )
     finally:
         connection.close()
 
     # on successful operation, send status 200 and messages
     raise HTTPException(
-        status_code=status.HTTP_200_OK,
-        detail={ "success" : True, "rows": rows}
+        status_code=status.HTTP_200_OK, detail={"success": True, "rows": rows}
     )
 
 
 # fetch all data about a single publisher
 @router.get("/publisher-data/{publisher_id}")
 def get_publisher_data(publisher_id):
-    try:        
+    try:
         # make a database connection
         connection = get_db_connection()
         # create a cursor object
@@ -53,30 +52,38 @@ def get_publisher_data(publisher_id):
         print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={"success" : False, "message" : "An error occurred"}
+            detail={"success": False, "message": "An error occurred"},
         )
     finally:
         connection.close()
 
     # on successful operation, send status 200 and messages
     raise HTTPException(
-        status_code=status.HTTP_200_OK,
-        detail={ "success" : True, "publisher": publisher}
+        status_code=status.HTTP_200_OK, detail={"success": True, "publisher": publisher}
     )
 
 
 # get all games released by the publisher
 @router.get("/publisher/{publisher_id}")
 def get_publisher_games(publisher_id):
-    try:        
+    try:
         # make a database connection
         connection = get_db_connection()
         # create a cursor object
         cursor = connection.cursor()
+
+        fetch_publisher_info_query = """
+            SELECT name FROM PUBLISHER WHERE publisher_id = %s;
+            """
+        cursor.execute(fetch_publisher_info_query, (publisher_id,))
+        publisher_name = cursor.fetchone()["name"]
+
         fetch_games_by_publisher = """
-            SELECT g.game_id, g.title AS game_title, g.image_url, p.name AS publisher_name
+            SELECT g.game_id, g.title AS game_title, g.image_url, g.platform_id, p.name AS platform_name, g.genre_id, gen.name AS genre_name, g.developer_id, d.name AS developer_name
             FROM GAME g
-            JOIN publisher p ON g.publisher_id = p.publisher_id
+            JOIN PLATFORM p ON g.platform_id = p.platform_id
+            JOIN GENRE gen ON g.genre_id = gen.genre_id
+            JOIN DEVELOPER d ON g.developer_id = d.developer_id
             WHERE g.developer_id = %s;
             """
         cursor.execute(fetch_games_by_publisher, (publisher_id,))
@@ -85,7 +92,7 @@ def get_publisher_games(publisher_id):
         print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={"success" : False, "message" : "An error occurred"}
+            detail={"success": False, "message": "An error occurred"},
         )
     finally:
         connection.close()
@@ -93,17 +100,19 @@ def get_publisher_games(publisher_id):
     # on successful operation, send status 200 and messages
     raise HTTPException(
         status_code=status.HTTP_200_OK,
-        detail={ "success" : True, "games": games}
+        detail={"success": True, "games": games, "publisher_name": publisher_name},
     )
 
 
 # add a new publisher to the database
 @router.post("/publisher/", response_model=User)
-async def post_publisher(publisher_data: Publisher, current_user: Annotated[User, Depends(get_current_user)]):
+async def post_publisher(
+    publisher_data: Publisher, current_user: Annotated[User, Depends(get_current_user)]
+):
     if current_user["role"] != "admin":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail={"success": False, "message": "You are unauthorized"}
+            detail={"success": False, "message": "You are unauthorized"},
         )
     try:
         connection = get_db_connection()
@@ -119,23 +128,28 @@ async def post_publisher(publisher_data: Publisher, current_user: Annotated[User
         print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={"success" : False, "message" : "Failed to add publisher"}
+            detail={"success": False, "message": "Failed to add publisher"},
         )
     finally:
         connection.close()
     # on successful operation, send status 200 and messages
     raise HTTPException(
         status_code=status.HTTP_200_OK,
-        detail={ "success" : True, "message": "Publisher added successfully"}
+        detail={"success": True, "message": "Publisher added successfully"},
     )
+
 
 # edit a video game publisher
 @router.put("/publisher/{publisher_id}", response_model=User)
-async def put_publisher(publisher_id: int, publisher_data: Publisher, current_user: Annotated[User, Depends(get_current_user)]):
+async def put_publisher(
+    publisher_id: int,
+    publisher_data: Publisher,
+    current_user: Annotated[User, Depends(get_current_user)],
+):
     if current_user["role"] == "user":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail={"success": False, "message": "You are unauthorized"}
+            detail={"success": False, "message": "You are unauthorized"},
         )
     try:
         connection = get_db_connection()
@@ -145,39 +159,43 @@ async def put_publisher(publisher_id: int, publisher_data: Publisher, current_us
         # create a cursor object
         cursor = connection.cursor()
         # check if the entry exists first
-        cursor.execute("SELECT * FROM publisher WHERE publisher_id = %s", (publisher_id,))
+        cursor.execute(
+            "SELECT * FROM publisher WHERE publisher_id = %s", (publisher_id,)
+        )
         publisher = cursor.fetchone()
         if not publisher:
             raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Publisher not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Publisher not found"
+            )
+        update_publisher_query = (
+            "UPDATE publisher SET name = %s WHERE publisher_id = %s"
         )
-        update_publisher_query = "UPDATE publisher SET name = %s WHERE publisher_id = %s"
         cursor.execute(update_publisher_query, (name, publisher_id))
         connection.commit()
     except Exception as e:
         print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update publisher"
+            detail="Failed to update publisher",
         )
     finally:
         connection.close()
-    
     # on successful operation, send status 200 and messages
     raise HTTPException(
         status_code=status.HTTP_200_OK,
-        detail={ "success" : True, "message": "Publisher updated successfully"}
+        detail={"success": True, "message": "Publisher updated successfully"},
     )
 
 
 # delete a video game publisher
 @router.delete("/publisher/{publisher_id}", response_model=User)
-async def delete_publisher(publisher_id:int, current_user: Annotated[User, Depends(get_current_user)]):
+async def delete_publisher(
+    publisher_id: int, current_user: Annotated[User, Depends(get_current_user)]
+):
     if current_user["role"] != "admin":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail={"success": False, "message": "You are unauthorized"}
+            detail={"success": False, "message": "You are unauthorized"},
         )
     try:
         connection = get_db_connection()
@@ -185,13 +203,14 @@ async def delete_publisher(publisher_id:int, current_user: Annotated[User, Depen
         cursor = connection.cursor()
 
         # check if the entry exists first
-        cursor.execute("SELECT * FROM publisher WHERE publisher_id = %s", (publisher_id,))
+        cursor.execute(
+            "SELECT * FROM publisher WHERE publisher_id = %s", (publisher_id,)
+        )
         publisher = cursor.fetchone()
         if not publisher:
             raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Publisher not found"
-        )
+                status_code=status.HTTP_404_NOT_FOUND, detail="Publisher not found"
+            )
         delete_publisher_query = "DELETE FROM publisher WHERE publisher_id = %s"
         cursor.execute(delete_publisher_query, (publisher_id,))
         connection.commit()
@@ -199,7 +218,7 @@ async def delete_publisher(publisher_id:int, current_user: Annotated[User, Depen
         print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to delete publisher"
+            detail="Failed to delete publisher",
         )
     finally:
         connection.close()
@@ -207,5 +226,5 @@ async def delete_publisher(publisher_id:int, current_user: Annotated[User, Depen
     # on successful operation, send status 200 and messages
     raise HTTPException(
         status_code=status.HTTP_200_OK,
-        detail={ "success" : True, "message": "Publisher successfully deleted"}
+        detail={"success": True, "message": "Publisher successfully deleted"},
     )

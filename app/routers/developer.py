@@ -15,7 +15,7 @@ class Developer(BaseModel):
 # get all developers
 @router.get("/developers/")
 def get_developers():
-    try:        
+    try:
         # make a database connection
         connection = get_db_connection()
         # create a cursor object
@@ -26,22 +26,21 @@ def get_developers():
         print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={"success" : False, "message" : "An error occurred"}
+            detail={"success": False, "message": "An error occurred"},
         )
     finally:
         connection.close()
 
     # on successful operation, send status 200 and messages
     raise HTTPException(
-        status_code=status.HTTP_200_OK,
-        detail={ "success" : True, "rows": rows}
+        status_code=status.HTTP_200_OK, detail={"success": True, "rows": rows}
     )
 
 
 # fetch all data about a single developer
 @router.get("/developer-data/{developer_id}")
 def get_developer_data(developer_id):
-    try:        
+    try:
         # make a database connection
         connection = get_db_connection()
         # create a cursor object
@@ -53,30 +52,38 @@ def get_developer_data(developer_id):
         print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={"success" : False, "message" : "An error occurred"}
+            detail={"success": False, "message": "An error occurred"},
         )
     finally:
         connection.close()
 
     # on successful operation, send status 200 and messages
     raise HTTPException(
-        status_code=status.HTTP_200_OK,
-        detail={ "success" : True, "developer": developer}
+        status_code=status.HTTP_200_OK, detail={"success": True, "developer": developer}
     )
 
 
 # get all games developed by the developer
 @router.get("/developer/{developer_id}")
 def get_developer_games(developer_id):
-    try:        
+    try:
         # make a database connection
         connection = get_db_connection()
         # create a cursor object
         cursor = connection.cursor()
+
+        fetch_developer_info_query = """
+            SELECT name FROM DEVELOPER WHERE developer_id = %s;
+            """
+        cursor.execute(fetch_developer_info_query, (developer_id,))
+        developer_name = cursor.fetchone()["name"]
+
         fetch_games_by_developer = """
-            SELECT g.game_id, g.title AS game_title, g.image_url, d.name AS developer_name
+            SELECT g.game_id, g.title AS game_title, g.image_url, g.genre_id, gen.name AS genre_name, g.platform_id, p.name AS platform_name, g.publisher_id, pub.name AS publisher_name
             FROM GAME g
-            JOIN DEVELOPER d ON g.developer_id = d.developer_id
+            JOIN GENRE gen ON g.genre_id = gen.genre_id
+            JOIN PLATFORM p ON g.platform_id = p.platform_id
+            JOIN PUBLISHER pub ON g.publisher_id = pub.publisher_id
             WHERE g.developer_id = %s;
             """
         cursor.execute(fetch_games_by_developer, (developer_id,))
@@ -85,7 +92,7 @@ def get_developer_games(developer_id):
         print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={"success" : False, "message" : "An error occurred"}
+            detail={"success": False, "message": "An error occurred"},
         )
     finally:
         connection.close()
@@ -93,17 +100,19 @@ def get_developer_games(developer_id):
     # on successful operation, send status 200 and messages
     raise HTTPException(
         status_code=status.HTTP_200_OK,
-        detail={ "success" : True, "games": games}
+        detail={"success": True, "games": games, "developer_name": developer_name},
     )
 
 
 # add a new developer to the database
 @router.post("/developer/", response_model=User)
-def post_developer(developer_data: Developer, current_user: Annotated[User, Depends(get_current_user)]):
+def post_developer(
+    developer_data: Developer, current_user: Annotated[User, Depends(get_current_user)]
+):
     if current_user["role"] != "admin":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail={"success": False, "message": "You are unauthorized"}
+            detail={"success": False, "message": "You are unauthorized"},
         )
     try:
         connection = get_db_connection()
@@ -119,23 +128,28 @@ def post_developer(developer_data: Developer, current_user: Annotated[User, Depe
         print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={"success" : False, "message" : "Failed to add developer"}
+            detail={"success": False, "message": "Failed to add developer"},
         )
     finally:
         connection.close()
     # on successful operation, send status 200 and messages
     raise HTTPException(
         status_code=status.HTTP_200_OK,
-        detail={ "success" : True, "message": "Developer added successfully"}
+        detail={"success": True, "message": "Developer added successfully"},
     )
+
 
 # edit a video game developer
 @router.put("/developer/{developer_id}", response_model=User)
-def put_developer(developer_id: int, developer_data: Developer, current_user: Annotated[User, Depends(get_current_user)]):
+def put_developer(
+    developer_id: int,
+    developer_data: Developer,
+    current_user: Annotated[User, Depends(get_current_user)],
+):
     if current_user["role"] == "user":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail={"success": False, "message": "You are unauthorized"}
+            detail={"success": False, "message": "You are unauthorized"},
         )
     try:
         connection = get_db_connection()
@@ -145,39 +159,44 @@ def put_developer(developer_id: int, developer_data: Developer, current_user: An
         # create a cursor object
         cursor = connection.cursor()
         # check if the entry exists first
-        cursor.execute("SELECT * FROM developer WHERE developer_id = %s", (developer_id,))
+        cursor.execute(
+            "SELECT * FROM developer WHERE developer_id = %s", (developer_id,)
+        )
         developer = cursor.fetchone()
         if not developer:
             raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Developer not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Developer not found"
+            )
+        update_developer_query = (
+            "UPDATE developer SET name = %s WHERE developer_id = %s"
         )
-        update_developer_query = "UPDATE developer SET name = %s WHERE developer_id = %s"
         cursor.execute(update_developer_query, (name, developer_id))
         connection.commit()
     except Exception as e:
         print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update developer"
+            detail="Failed to update developer",
         )
     finally:
         connection.close()
-    
+
     # on successful operation, send status 200 and messages
     raise HTTPException(
         status_code=status.HTTP_200_OK,
-        detail={ "success" : True, "message": "Developer updated successfully"}
+        detail={"success": True, "message": "Developer updated successfully"},
     )
 
 
 # delete a video game developer
 @router.delete("/developer/{developer_id}", response_model=User)
-def delete_developer(developer_id:int, current_user: Annotated[User, Depends(get_current_user)]):
+def delete_developer(
+    developer_id: int, current_user: Annotated[User, Depends(get_current_user)]
+):
     if current_user["role"] != "admin":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail={"success": False, "message": "You are unauthorized"}
+            detail={"success": False, "message": "You are unauthorized"},
         )
     try:
         connection = get_db_connection()
@@ -185,13 +204,14 @@ def delete_developer(developer_id:int, current_user: Annotated[User, Depends(get
         cursor = connection.cursor()
 
         # check if the entry exists first
-        cursor.execute("SELECT * FROM developer WHERE developer_id = %s", (developer_id,))
+        cursor.execute(
+            "SELECT * FROM developer WHERE developer_id = %s", (developer_id,)
+        )
         developer = cursor.fetchone()
         if not developer:
             raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Developer not found"
-        )
+                status_code=status.HTTP_404_NOT_FOUND, detail="Developer not found"
+            )
         delete_developer_query = "DELETE FROM developer WHERE developer_id = %s"
         cursor.execute(delete_developer_query, (developer_id,))
         connection.commit()
@@ -199,7 +219,7 @@ def delete_developer(developer_id:int, current_user: Annotated[User, Depends(get
         print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to delete developer"
+            detail="Failed to delete developer",
         )
     finally:
         connection.close()
@@ -207,5 +227,5 @@ def delete_developer(developer_id:int, current_user: Annotated[User, Depends(get
     # on successful operation, send status 200 and messages
     raise HTTPException(
         status_code=status.HTTP_200_OK,
-        detail={ "success" : True, "message": "Developer successfully deleted"}
+        detail={"success": True, "message": "Developer successfully deleted"},
     )

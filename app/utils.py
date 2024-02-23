@@ -30,7 +30,7 @@ def get_password_hash(password):
 
 
 # check if the user exists in the database
-def get_user(email:str):
+def get_user(email: str):
     connection = get_db_connection()
     cursor = connection.cursor()
     cursor.execute("SELECT * FROM users WHERE email = %s", email)
@@ -41,12 +41,14 @@ def get_user(email:str):
 
 
 # create the access token
-def create_access_token(data:dict, expires_delta: timedelta | None = None):
+def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now(timezone.utc) + timedelta(
+            minutes=ACCESS_TOKEN_EXPIRE_MINUTES
+        )
     # to_encode.update({"exp": expire})
     to_encode["exp"] = expire
     # Set the issued at time
@@ -56,12 +58,14 @@ def create_access_token(data:dict, expires_delta: timedelta | None = None):
 
 
 # create the refresh token
-def create_refresh_token(data:dict, expires_delta: timedelta | None = None):
+def create_refresh_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now(timezone.utc) + timedelta(
+            minutes=REFRESH_TOKEN_EXPIRE_MINUTES
+        )
     # to_encode.update({"exp": expire})
     to_encode["exp"] = expire
     # Set the issued at time
@@ -70,13 +74,17 @@ def create_refresh_token(data:dict, expires_delta: timedelta | None = None):
     return encoded_jwt
 
 
-def update_refresh_token(refresh_token:str):
+def update_refresh_token(refresh_token: str):
     try:
-        payload = jwt.decode(refresh_token, JWT_REFRESH_SECRET_KEY, algorithms=["HS256"])
+        payload = jwt.decode(
+            refresh_token, JWT_REFRESH_SECRET_KEY, algorithms=["HS256"]
+        )
 
-        if datetime.utcnow() < datetime.utcfromtimestamp(payload['exp']):
+        if datetime.utcnow() < datetime.utcfromtimestamp(payload["exp"]):
             to_encode = payload
-            encoded_jwt = jwt.encode(to_encode, JWT_REFRESH_SECRET_KEY, algorithm=ALGORITHM)
+            encoded_jwt = jwt.encode(
+                to_encode, JWT_REFRESH_SECRET_KEY, algorithm=ALGORITHM
+            )
             return encoded_jwt
     except JWTError as e:
         # Handle JWT errors
@@ -87,10 +95,12 @@ def update_refresh_token(refresh_token:str):
 def verify_refresh_token(refresh_token: str):
     try:
         # Verify the token's signature
-        payload = jwt.decode(refresh_token, JWT_REFRESH_SECRET_KEY, algorithms=["HS256"])
+        payload = jwt.decode(
+            refresh_token, JWT_REFRESH_SECRET_KEY, algorithms=["HS256"]
+        )
 
         # Check token expiration
-        if datetime.utcnow() > datetime.utcfromtimestamp(payload['exp']):
+        if datetime.utcnow() > datetime.utcfromtimestamp(payload["exp"]):
             # Token has expired
             return None
 
@@ -98,7 +108,7 @@ def verify_refresh_token(refresh_token: str):
         user_id = payload.get("sub")
 
         return user_id
-    
+
     except JWTError as e:
         # Handle JWT errors
         print(f"JWT Error: {e}")
