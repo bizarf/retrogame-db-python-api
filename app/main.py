@@ -19,7 +19,7 @@ app.add_middleware(
     allow_origins=["https://bizarf.github.io/"],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
-    allow_headers=["Content-Type", "Authorization"],
+    allow_headers=["*"],
 )
 
 
