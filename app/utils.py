@@ -1,3 +1,4 @@
+from typing import Optional
 from passlib.context import CryptContext
 from app.pymysql.databaseConnection import get_db_connection
 from datetime import datetime, timedelta, timezone
@@ -41,7 +42,7 @@ def get_user(email: str):
 
 
 # create the access token
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
@@ -58,7 +59,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
 
 
 # create the refresh token
-def create_refresh_token(data: dict, expires_delta: timedelta | None = None):
+def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
