@@ -10,6 +10,7 @@ from app.routers import (
     favourites,
     token,
 )
+import uvicorn
 
 
 app = FastAPI()
@@ -36,3 +37,6 @@ app.include_router(publisher.router)
 app.include_router(game.router)
 app.include_router(favourites.router)
 app.include_router(token.router)
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
