@@ -1,6 +1,6 @@
 from fastapi import HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordBearer
-from typing import Annotated
+from typing import Annotated, Optional
 from jose import JWTError, jwt
 from pydantic import BaseModel
 from app.utils import get_user, JWT_SECRET_KEY, ALGORITHM
@@ -10,7 +10,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/login")
 
 
 class TokenData(BaseModel):
-    email: str | None = None
+    email: Optional[str] = None
 
 
 # dependency to protect routes
