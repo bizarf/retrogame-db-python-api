@@ -3,7 +3,7 @@
 This is a project where I'm making an API for a retro video game themed database using FastAPI with PyMySQL. The goal is to test and showcase the Python and MySQL knowledge that I have gained.
 
 -   [View the live client site here](https://bizarf.github.io/retrogame-db-client/)
--   [View the RetroGame DB client repo](https://github.com/bizarf/retrogame-db-python-api)
+-   [View the RetroGame DB client repo](https://github.com/bizarf/retrogame-db-client)
 
 <hr>
 
