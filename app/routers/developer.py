@@ -4,7 +4,7 @@ from app.pymysql.databaseConnection import get_db_connection
 from typing import Annotated
 from app.dependencies import get_current_user
 from app.models.User import User
-from app.utils.db_utils import get_info_list
+from app.utils.db_utils import get_info_list, get_info_data
 
 router = APIRouter()
 
@@ -26,27 +26,10 @@ def get_developers():
 # fetch all data about a single developer
 @router.get("/developer-data/{developer_id}")
 def get_developer_data(developer_id):
-    try:
-        # make a database connection
-        connection = get_db_connection()
-        # create a cursor object
-        cursor = connection.cursor()
-        fetch_platform_data = "SELECT * FROM developer WHERE developer_id = %s"
-        cursor.execute(fetch_platform_data, (developer_id,))
-        developer = cursor.fetchone()
-    except Exception as e:
-        print(e)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={"success": False, "message": "An error occurred"},
-        )
-    finally:
-        connection.close()
-
-    # on successful operation, send status 200 and messages
-    raise HTTPException(
-        status_code=status.HTTP_200_OK, detail={"success": True, "developer": developer}
+    fetch_developer_data = (
+        "SELECT developer_id, name FROM developer WHERE developer_id = %s"
     )
+    get_info_data(fetch_developer_data, "developer", developer_id)
 
 
 # get all games developed by the developer
