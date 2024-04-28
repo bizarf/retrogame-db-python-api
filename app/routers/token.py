@@ -1,5 +1,9 @@
 from fastapi import APIRouter, HTTPException
-from app.utils import create_access_token, verify_refresh_token, update_refresh_token
+from app.utils.auth_utils import (
+    create_access_token,
+    verify_refresh_token,
+    update_refresh_token,
+)
 
 router = APIRouter()
 

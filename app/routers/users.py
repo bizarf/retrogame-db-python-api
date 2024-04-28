@@ -4,7 +4,7 @@ from pydantic import BaseModel, EmailStr
 from typing import Annotated
 from datetime import datetime
 from app.pymysql.databaseConnection import get_db_connection
-from app.utils import (
+from app.utils.auth_utils import (
     verify_password,
     get_password_hash,
     create_access_token,

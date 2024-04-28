@@ -1,11 +1,11 @@
-import os
 from fastapi import APIRouter, HTTPException, status, Depends
-from pydantic import BaseModel, HttpUrl, validator, ValidationError
+from pydantic import BaseModel, HttpUrl, validator
 from typing import Optional, Annotated
 from app.pymysql.databaseConnection import get_db_connection
 from app.dependencies import get_current_user
 from app.models.User import User
 import re
+from app.utils.db_utils import get_info_list
 
 router = APIRouter()
 
@@ -30,26 +30,8 @@ class Platform(BaseModel):
 # get all platforms
 @router.get("/platforms/")
 def get_platforms():
-    try:
-        # make a database connection
-        connection = get_db_connection()
-        # create a cursor object
-        cursor = connection.cursor()
-        cursor.execute("SELECT * FROM platform")
-        rows = cursor.fetchall()
-    except Exception as e:
-        print(e)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={"success": False, "message": "An error occurred"},
-        )
-    finally:
-        connection.close()
-
-    # on successful operation, send status 200 and messages
-    raise HTTPException(
-        status_code=status.HTTP_200_OK, detail={"success": True, "rows": rows}
-    )
+    query = "SELECT platform_id, name, logo_url FROM platform"
+    get_info_list(query)
 
 
 # fetch all data about single platform

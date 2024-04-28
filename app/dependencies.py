@@ -3,7 +3,7 @@ from fastapi.security import OAuth2PasswordBearer
 from typing import Annotated, Optional
 from jose import JWTError, jwt
 from pydantic import BaseModel
-from app.utils import get_user, JWT_SECRET_KEY, ALGORITHM
+from app.utils.auth_utils import get_user, JWT_SECRET_KEY, ALGORITHM
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/login")
