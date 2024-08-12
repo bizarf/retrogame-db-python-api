@@ -3,31 +3,32 @@
 This is a project where I'm making an API for a retro video game themed database using FastAPI with PyMySQL. The goal is to test and showcase the Python and MySQL knowledge that I have gained.
 
 -   [View the live client site here](https://bizarf.github.io/retrogame-db-client/)
+
 -   [View the RetroGame DB client repo](https://github.com/bizarf/retrogame-db-client)
 
 <hr>
 
 #### Install:
 
-To run this project on your locally, first clone the repo and enter the folder in your terminal. Now setup a VENV with the command:
+1. To run this project on your locally, first clone the repo and enter the folder in your terminal. Now setup a VENV with the command:
 
 ```
 python -m venv venv
 ```
 
-After that has been created activate the virtual environment by typing in your terminal:
+2. After that has been created activate the virtual environment by typing in your terminal:
 
 ```
 venv\Scripts\activate
 ```
 
-Now to install the project dependencies type:
+3. Now to install the project dependencies type:
 
 ```
 pip install -r requirements.txt
 ```
 
-Now create a file called ".env" at the root of the project and inside the file add:
+4. Now create a file called ".env" at the root of the project and inside the file add:
 
 ```
 MYSQL_HOST="(your MySQL hostname)"
@@ -39,13 +40,20 @@ JWT_REFRESH_SECRET_KEY="(generate with command: openssl rand -hex 32)"
 CORS_ORIGIN="(the frontend host)"
 ```
 
-When everything has been done, we can start the server with:
+5. When everything has been done, we can start the server with:
+
+```
+uvicorn app.main:app
+```
+
+or this command for automatic reloading
 
 ```
 uvicorn app.main:app --reload
 ```
 
 <hr>
+
 #### Features
 
 -   [x] JWT authentication system with locked routes
@@ -60,7 +68,7 @@ uvicorn app.main:app --reload
 -   [x] Routes for handling game data
 -   [x] Routes for handling favourites data
 -   [x] Routes for generating new access tokens
--   [] Routes for rating games system
+-   [ ] Routes for rating games system
 
 <hr>
 

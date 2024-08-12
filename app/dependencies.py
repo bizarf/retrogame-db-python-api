@@ -1,10 +1,11 @@
-from fastapi import HTTPException, status, Depends
-from fastapi.security import OAuth2PasswordBearer
 from typing import Annotated, Optional
-from jose import JWTError, jwt
-from pydantic import BaseModel
-from app.utils.auth_utils import get_user, JWT_SECRET_KEY, ALGORITHM
 
+import jwt
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from pydantic import BaseModel
+
+from app.utils.auth_utils import ALGORITHM, JWT_SECRET_KEY, get_user
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/login")
 
@@ -26,7 +27,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         if email is None:
             raise credentials_exception
         token_data = TokenData(email=email)
-    except JWTError:
+    except jwt.exceptions.InvalidTokenError:
         raise credentials_exception
     user = get_user(email=token_data.email)
     if user is None:
