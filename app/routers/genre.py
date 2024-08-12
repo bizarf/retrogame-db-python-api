@@ -4,6 +4,7 @@ from typing import Annotated
 from app.pymysql.databaseConnection import get_db_connection
 from app.dependencies import get_current_user
 from app.models.User import User
+from app.utils.db_utils import get_info_data, get_info_list
 
 router = APIRouter()
 
@@ -15,52 +16,15 @@ class Genre(BaseModel):
 # get all genres
 @router.get("/genres/")
 def get_genres():
-    try:
-        # make a database connection
-        connection = get_db_connection()
-        # create a cursor object
-        cursor = connection.cursor()
-        cursor.execute("SELECT * FROM genre")
-        rows = cursor.fetchall()
-    except Exception as e:
-        print(e)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={"success": False, "message": "An error occurred"},
-        )
-    finally:
-        connection.close()
-
-    # on successful operation, send status 200 and messages
-    raise HTTPException(
-        status_code=status.HTTP_200_OK, detail={"success": True, "rows": rows}
-    )
+    query = "SELECT genre_id, name FROM genre"
+    get_info_list(query)
 
 
 # fetch all data about a single genre
 @router.get("/genre-data/{genre_id}")
 def get_genre_data(genre_id):
-    try:
-        # make a database connection
-        connection = get_db_connection()
-        # create a cursor object
-        cursor = connection.cursor()
-        fetch_platform_data = "SELECT * FROM genre WHERE genre_id = %s"
-        cursor.execute(fetch_platform_data, (genre_id,))
-        genre = cursor.fetchone()
-    except Exception as e:
-        print(e)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={"success": False, "message": "An error occurred"},
-        )
-    finally:
-        connection.close()
-
-    # on successful operation, send status 200 and messages
-    raise HTTPException(
-        status_code=status.HTTP_200_OK, detail={"success": True, "genre": genre}
-    )
+    fetch_genre_data = "SELECT genre_id, name FROM genre WHERE genre_id = %s"
+    get_info_data(fetch_genre_data, "genre", genre_id)
 
 
 # get all games under that genre

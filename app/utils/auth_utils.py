@@ -1,10 +1,13 @@
-from typing import Optional
-from passlib.context import CryptContext
-from app.pymysql.databaseConnection import get_db_connection
-from datetime import datetime, timedelta, timezone
-from jose import jwt, JWTError
-from dotenv import load_dotenv
 import os
+from datetime import datetime, timedelta, timezone
+from typing import Optional
+
+import jwt
+from dotenv import load_dotenv
+from jwt import ExpiredSignatureError, InvalidTokenError
+from passlib.context import CryptContext
+
+from app.pymysql.databaseConnection import get_db_connection
 
 load_dotenv()
 
@@ -81,15 +84,19 @@ def update_refresh_token(refresh_token: str):
             refresh_token, JWT_REFRESH_SECRET_KEY, algorithms=["HS256"]
         )
 
-        if datetime.utcnow() < datetime.utcfromtimestamp(payload["exp"]):
+        if datetime.now(datetime.UTC) < datetime.fromtimestamp(datetime.UTC)(
+            payload["exp"]
+        ):
             to_encode = payload
             encoded_jwt = jwt.encode(
                 to_encode, JWT_REFRESH_SECRET_KEY, algorithm=ALGORITHM
             )
             return encoded_jwt
-    except JWTError as e:
-        # Handle JWT errors
-        print(f"JWT Error: {e}")
+    except ExpiredSignatureError:
+        print("Token has expired")
+        return None
+    except InvalidTokenError as e:
+        print(f"Invalid token: {e}")
         return None
 
 
@@ -101,7 +108,9 @@ def verify_refresh_token(refresh_token: str):
         )
 
         # Check token expiration
-        if datetime.utcnow() > datetime.utcfromtimestamp(payload["exp"]):
+        if datetime.now(datetime.UTC) > datetime.fromtimestamp(datetime.UTC)(
+            payload["exp"]
+        ):
             # Token has expired
             return None
 
@@ -110,7 +119,9 @@ def verify_refresh_token(refresh_token: str):
 
         return user_id
 
-    except JWTError as e:
-        # Handle JWT errors
-        print(f"JWT Error: {e}")
+    except ExpiredSignatureError:
+        print("Token has expired")
+        return None
+    except InvalidTokenError as e:
+        print(f"Invalid token: {e}")
         return None
